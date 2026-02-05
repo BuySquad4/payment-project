@@ -1,4 +1,4 @@
-package com.bootcamp.paymentdemo;
+package com.bootcamp.paymentproject;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,9 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class PaymentDemoApplication {
+public class PaymentProjectApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PaymentDemoApplication.class, args);
+        SpringApplication.run(PaymentProjectApplication.class, args);
     }
 }

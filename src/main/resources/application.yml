@@ -2,6 +2,21 @@ spring:
   application:
     name: payment-demo
 
+  datasource:
+    url: jdbc:mysql://localhost:3306/payment
+    username: root
+    password: 12345678
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    show-sql: true
+
+
   # 클라이언트 API 계약 설정 파일 import
   config:
     import: optional:classpath:client-api-config.yml

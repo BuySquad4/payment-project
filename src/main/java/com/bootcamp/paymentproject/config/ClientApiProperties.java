@@ -1,4 +1,4 @@
-package com.bootcamp.paymentdemo.config;
+package com.bootcamp.paymentproject.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

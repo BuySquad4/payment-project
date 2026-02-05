@@ -1,4 +1,4 @@
-package com.bootcamp.paymentdemo.security;
+package com.bootcamp.paymentproject.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
