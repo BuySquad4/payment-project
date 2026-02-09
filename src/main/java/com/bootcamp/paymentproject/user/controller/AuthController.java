@@ -1,7 +1,7 @@
 package com.bootcamp.paymentproject.user.controller;
 
-import com.bootcamp.paymentproject.common.dto.request.SignUpRequest;
-import com.bootcamp.paymentproject.common.dto.response.SignUpResponse;
+import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
+import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
 import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
 import com.bootcamp.paymentproject.user.service.AuthService;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.common.dto.request;
+package com.bootcamp.paymentproject.user.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

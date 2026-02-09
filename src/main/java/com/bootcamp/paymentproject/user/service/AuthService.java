@@ -1,7 +1,7 @@
 package com.bootcamp.paymentproject.user.service;
 
-import com.bootcamp.paymentproject.common.dto.request.SignUpRequest;
-import com.bootcamp.paymentproject.common.dto.response.SignUpResponse;
+import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
+import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
 import com.bootcamp.paymentproject.user.entity.User;
 import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
