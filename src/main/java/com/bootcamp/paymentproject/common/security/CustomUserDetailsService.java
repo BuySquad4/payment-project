@@ -1,8 +1,8 @@
 package com.bootcamp.paymentproject.common.security;
 
 import com.bootcamp.paymentproject.common.dto.CustomUserDetails;
-import com.bootcamp.paymentproject.entity.User;
-import com.bootcamp.paymentproject.repsitory.UserRepository;
+import com.bootcamp.paymentproject.user.entity.User;
+import com.bootcamp.paymentproject.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
