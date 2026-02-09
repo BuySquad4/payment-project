@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.user.webhook.dto;
+package com.bootcamp.paymentproject.webhook.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

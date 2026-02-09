@@ -22,5 +22,4 @@ public class SuccessResponse<T> {
                 .data(data)
                 .build();
     }
-
 }

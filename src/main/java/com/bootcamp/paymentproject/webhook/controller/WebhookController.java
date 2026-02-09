@@ -1,8 +1,8 @@
-package com.bootcamp.paymentproject.user.webhook.controller;
+package com.bootcamp.paymentproject.webhook.controller;
 
 import com.bootcamp.paymentproject.common.config.PortOneWebhookVerifier;
-import com.bootcamp.paymentproject.user.webhook.dto.PortoneWebhookPayload;
-import com.bootcamp.paymentproject.user.webhook.repository.WebhookEventRepository;
+import com.bootcamp.paymentproject.webhook.dto.PortoneWebhookPayload;
+import com.bootcamp.paymentproject.webhook.repository.WebhookEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

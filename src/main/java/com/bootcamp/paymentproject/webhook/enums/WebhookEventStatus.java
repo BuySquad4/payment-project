@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.user.webhook.enums;
+package com.bootcamp.paymentproject.webhook.enums;
 
 public enum WebhookEventStatus {
 
