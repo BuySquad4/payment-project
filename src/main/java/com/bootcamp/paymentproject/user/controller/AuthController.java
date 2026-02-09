@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.user.controller;
 
+import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
 import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
 import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
@@ -29,10 +30,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignUpResponse> signup(
+    public ResponseEntity<SuccessResponse<SignUpResponse>> signup(
             @Valid @RequestBody SignUpRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success(authService.signup(request), "회원가입에 성공했습니다."));
     }
 
     /**
