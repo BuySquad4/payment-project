@@ -23,6 +23,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toStaticResources;
+
 /**
  * Spring Security 설정 - JWT 기반 인증
  *
@@ -65,6 +67,8 @@ public class SecurityConfig {
 
             // 요청 권한 설정
             .authorizeHttpRequests(authorize -> authorize
+                    // 1) 정적 리소스
+                    .requestMatchers(toStaticResources().atCommonLocations()).permitAll()
 
                         // 2) 템플릿 페이지 렌더링
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
@@ -104,17 +108,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    /**
-//     * Admin 계정 (InMemory - 데모용)
-//     */
-//    @Bean
-//    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-//        UserDetails admin = User.builder()
-//            .username("admin@test.com")
-//            .password(passwordEncoder.encode("admin"))
-//            .roles("USER", "ADMIN")
-//            .build();
-//
-//        return new InMemoryUserDetailsManager(admin);
-//    }
+    /**
+     * Admin 계정 (InMemory - 데모용)
+     */
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+        UserDetails admin = User.builder()
+            .username("admin@test.com")
+            .password(passwordEncoder.encode("admin"))
+            .roles("USER", "ADMIN")
+            .build();
+
+        return new InMemoryUserDetailsManager(admin);
+    }
 }
