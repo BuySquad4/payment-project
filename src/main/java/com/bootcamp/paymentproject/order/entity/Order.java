@@ -1,10 +1,13 @@
 package com.bootcamp.paymentproject.order.entity;
 
+import com.bootcamp.paymentproject.common.entity.BaseEntity;
+import com.bootcamp.paymentproject.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,34 +15,29 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Table(name = "orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Order {
+public class Order extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String orderId;
+    private Long id;
 
+    @Column(name = "order_num")
     private String orderNumber;
-    private String ordererEmail;
 
-    private int totalAmount;
+    @Column(name = "total_price")
+    private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    private OrderEnum status;
-    private LocalDateTime createdAt;
+    private OrderStatus status;
+    @Column(name = "ordered_at")
+    private LocalDateTime orderedAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderProduct> items = new ArrayList<>();
 
-    public Order(String ordererEmail) {
-        this.orderId = UUID.randomUUID().toString();
+    public Order(BigDecimal totalPrice) {
         this.orderNumber = "ORD-" + System.currentTimeMillis();
-        this.ordererEmail = ordererEmail;
-        this.status = OrderEnum.WAITING;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    public void addItem(OrderProduct item) {
-        items.add(item);
-        totalAmount += item.getPrice() * item.getQuantity();
+        this.totalPrice = totalPrice;
+        this.status = OrderStatus.WAITING;
+        this.orderedAt = LocalDateTime.now();
     }
 }

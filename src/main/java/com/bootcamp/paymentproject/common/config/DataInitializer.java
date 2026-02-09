@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -20,10 +22,9 @@ public class DataInitializer implements CommandLineRunner {
 
             // 1번 상품
             productRepository.save(Product.builder()
-                    .id("PROD-001")
                     .name("프리미엄 기계식 키보드")
-                    .price(120000L)
-                    .stock(50)
+                    .price(BigDecimal.valueOf(120000L))
+                    .stock(50L)
                     .description("타건감이 예술인 기계식 키보드입니다.")
                     .status(ProductStatus.AVAILABLE)
                     .category("전자제품")
@@ -31,10 +32,9 @@ public class DataInitializer implements CommandLineRunner {
 
             // 2번 상품
             productRepository.save(Product.builder()
-                    .id("PROD-002")
                     .name("무선 인체공학 마우스")
-                    .price(45000L)
-                    .stock(30)
+                    .price(BigDecimal.valueOf(45000L))
+                    .stock(30L)
                     .description("손목이 편안한 무선 마우스입니다.")
                     .status(ProductStatus.AVAILABLE)
                     .category("전자제품")
@@ -42,10 +42,9 @@ public class DataInitializer implements CommandLineRunner {
 
             // 3번 상품
             productRepository.save(Product.builder()
-                    .id("PROD-003")
                     .name("4K 커브드 모니터")
-                    .price(350000L)
-                    .stock(0)
+                    .price(BigDecimal.valueOf(350000L))
+                    .stock(0L)
                     .description("압도적인 몰입감의 4K 모니터입니다.")
                     .status(ProductStatus.OUT_OF_STOCK)
                     .category("전자제품")

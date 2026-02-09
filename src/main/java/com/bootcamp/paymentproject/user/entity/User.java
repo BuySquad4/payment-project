@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.user.entity;
 
+import com.bootcamp.paymentproject.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,14 +11,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
+@AllArgsConstructor
 @Table(name = "users")
-@EntityListeners(AuditingEntityListener.class)
-public class User {
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,12 +36,4 @@ public class User {
 
     @Column(name = "point_balance")
     private BigDecimal pointBalance;
-
-    @Column(name = "created_at")
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @Column(name = "modified_at")
-    @LastModifiedDate
-    private LocalDateTime modifiedAt;
 }
