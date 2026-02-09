@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 public class SignUpResponse {
-    private boolean success;
     private String name;
     private String phoneNumber;
     private String email;
