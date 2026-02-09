@@ -1,6 +1,6 @@
-package com.bootcamp.paymentproject.webhook.repository;
+package com.bootcamp.paymentproject.user.webhook.repository;
 
-import com.bootcamp.paymentproject.webhook.entity.WebhookEvent;
+import com.bootcamp.paymentproject.user.webhook.entity.WebhookEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
