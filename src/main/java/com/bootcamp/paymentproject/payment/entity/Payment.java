@@ -24,6 +24,8 @@ public class Payment extends BaseEntity {
     private String paymentId;
 
     private BigDecimal amount;
+
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
     @Column(name = "paid_at")

@@ -5,6 +5,8 @@ import com.bootcamp.paymentproject.product.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -14,15 +16,15 @@ import lombok.*;
 @Table(name = "products")
 public class Product extends BaseEntity {
 
-    @Id
-    private String id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String name;
 
-    private Long price;
+    private BigDecimal price;
 
-    private Integer stock;
+    private Long stock;
 
     @Column(columnDefinition = "TEXT")
     private String description;

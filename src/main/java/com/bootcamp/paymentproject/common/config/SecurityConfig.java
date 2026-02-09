@@ -22,8 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toStaticResources;
+import static org.springframework.boot.security.autoconfigure.web.servlet.PathRequest.toStaticResources;
 
 /**
  * Spring Security 설정 - JWT 기반 인증
@@ -70,21 +69,18 @@ public class SecurityConfig {
                     // 1) 정적 리소스
                     .requestMatchers(toStaticResources().atCommonLocations()).permitAll()
 
-                        // 2) 템플릿 페이지 렌더링
-                        .requestMatchers(HttpMethod.GET, "/").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/pages/**").permitAll()
+                    // 2) 템플릿 페이지 렌더링
+                    .requestMatchers(HttpMethod.GET, "/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/pages/**").permitAll()
 
-                        // 3) 공개 API
-                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
-
-                    // 정적 리소스
-                    .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                    // 3) 공개 API
+                    .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
 
                     // 4) 인증 API
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
 
-                        // 5) 그 외 API는 인증 필요
-                        .requestMatchers("/api/**").authenticated()
+                    // 5) 그 외 API는 인증 필요
+                    .requestMatchers("/api/**").authenticated()
 
                     // 6) 나머지 전부 인증 필요
                     .anyRequest().authenticated()
