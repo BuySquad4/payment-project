@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.controller;
+package com.bootcamp.paymentproject.common.controller;
 
 import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;

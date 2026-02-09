@@ -1,7 +1,7 @@
-package com.bootcamp.paymentproject.controller;
+package com.bootcamp.paymentproject.product.controller;
 
-import com.bootcamp.paymentproject.entity.Product;
-import com.bootcamp.paymentproject.repository.ProductRepository;
+import com.bootcamp.paymentproject.product.entity.Product;
+import com.bootcamp.paymentproject.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -42,38 +42,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // CSRF 비활성화 (JWT 사용 시 불필요)
-            .csrf(AbstractHttpConfigurer::disable)
+                // CSRF 비활성화 (JWT 사용 시 불필요)
+                .csrf(AbstractHttpConfigurer::disable)
 
-            // Session 사용 안 함 (Stateless)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                // Session 사용 안 함 (Stateless)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-            // 요청 권한 설정
-            .authorizeHttpRequests(authorize -> authorize
-                     // 1) 정적 리소스
-                    .requestMatchers(toStaticResources().atCommonLocations()).permitAll()
+                // 요청 권한 설정
+                .authorizeHttpRequests(authorize -> authorize
+                        // 1) 정적 리소스
+                        .requestMatchers(toStaticResources().atCommonLocations()).permitAll()
 
-                    // 2) 템플릿 페이지 렌더링
-                    .requestMatchers(HttpMethod.GET, "/").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/pages/**").permitAll()
+                        // 2) 템플릿 페이지 렌더링
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/pages/**").permitAll()
 
-                    // 3) 공개 API
-                    .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                        // 3) 공개 API
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
 
-                    // 4) 인증 API
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
+                        // 4) 인증 API
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
 
-                    // 5) 그 외 API는 인증 필요
-                    .requestMatchers("/api/**").authenticated()
+                        // 5) 그 외 API는 인증 필요
+                        .requestMatchers("/api/**").authenticated()
 
-                    // 6) 나머지 전부 인증 필요
-                    .anyRequest().authenticated()
-            )
+                        // 6) 나머지 전부 인증 필요
+                        .anyRequest().authenticated()
+                )
 
-            // JWT 필터 추가
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -92,10 +92,10 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         UserDetails admin = User.builder()
-            .username("admin@test.com")
-            .password(passwordEncoder.encode("admin"))
-            .roles("USER", "ADMIN")
-            .build();
+                .username("admin@test.com")
+                .password(passwordEncoder.encode("admin"))
+                .roles("USER", "ADMIN")
+                .build();
 
         return new InMemoryUserDetailsManager(admin);
     }

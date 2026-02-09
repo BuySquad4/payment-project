@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.entity;
+package com.bootcamp.paymentproject.product.enums;
 
 public enum ProductStatus {
     AVAILABLE,    // 판매 중
