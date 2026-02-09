@@ -11,7 +11,11 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "webhook_event")
+@Table(
+        name = "webhook_event",
+        // webhookId 중복 저장 방지 (멱등 처리용)
+        uniqueConstraints = @UniqueConstraint(name = "uk_webhook_event_webhook_id", columnNames = "webhookId")
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class WebhookEvent extends BaseEntity {
 
@@ -29,6 +33,26 @@ public class WebhookEvent extends BaseEntity {
     private WebhookEventStatus status;
     @Column(nullable = false)
     private LocalDateTime receivedAt;
-    @Column(nullable = false)
     private LocalDateTime completedAt;
+
+    public static WebhookEvent received(String webhookId, String paymentId, String eventStatus, String rawTs) {
+        WebhookEvent e = new WebhookEvent();
+        e.webhookId = webhookId;
+        e.paymentID = paymentId;
+        e.eventStatus = eventStatus;
+        e.status = WebhookEventStatus.RECEIVED;
+        e.receivedAt = LocalDateTime.now();
+        e.completedAt = null;
+        return e;
+    }
+
+    public void markProcessed() {
+        this.status = WebhookEventStatus.PROCESSED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void markFailed() {
+        this.status = WebhookEventStatus.FAILED;
+        this.completedAt = LocalDateTime.now();
+    }
 }

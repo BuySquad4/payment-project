@@ -79,6 +79,9 @@ public class SecurityConfig {
                     // 4) 인증 API
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
 
+                    // PortOne Webhook (외부에서 들어오는 요청이라 인증 없이 허용)
+                    .requestMatchers(HttpMethod.POST, "/portone-webhook").permitAll()
+
                     // 5) 그 외 API는 인증 필요
                     .requestMatchers("/api/**").authenticated()
 
