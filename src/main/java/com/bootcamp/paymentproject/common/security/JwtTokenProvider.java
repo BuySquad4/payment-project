@@ -48,17 +48,23 @@ public class JwtTokenProvider {
             .compact();
     }
 
+    private Claims parseToken(String token){
+        return Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     /**
      * JWT 토큰에서 사용자 이름 추출
      */
     public String getEmail(String token) {
-        Claims claims = Jwts.parser()
-            .verifyWith(secretKey)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+        return parseToken(token).getSubject();
+    }
 
-        return claims.getSubject();
+    public Boolean isExpired(String token){
+        return parseToken(token).getExpiration().before(new Date());
     }
 
     /**
@@ -71,10 +77,7 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token);
+            parseToken(token);
             return true;
         } catch (Exception e) {
             // TODO: 구체적인 예외 처리 구현
