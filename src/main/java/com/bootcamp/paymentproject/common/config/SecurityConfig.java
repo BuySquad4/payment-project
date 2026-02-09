@@ -53,10 +53,13 @@ public class SecurityConfig {
 
         http
             // CSRF 비활성화 (JWT 사용 시 불필요)
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable);
+
+        http
+                .formLogin(AbstractHttpConfigurer::disable);
 
             // Session 사용 안 함 (Stateless)
-            .sessionManagement(session -> session
+        http    .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
@@ -69,6 +72,9 @@ public class SecurityConfig {
 
                     // 3) 공개 API
                     .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+
+                    // 정적 리소스
+                    .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
 
                     // 4) 인증 API
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()

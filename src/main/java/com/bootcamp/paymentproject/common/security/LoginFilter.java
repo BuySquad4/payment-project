@@ -1,8 +1,6 @@
 package com.bootcamp.paymentproject.common.security;
 
 import com.bootcamp.paymentproject.common.dto.CustomUserDetails;
-import com.bootcamp.paymentproject.common.dto.LoginRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,19 +33,26 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            LoginRequest loginRequest =
-                    objectMapper.readValue(request.getInputStream(), LoginRequest.class);
+            String username = obtainUseremail(request);
+            String password = obtainPassword(request);
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(),
-                            loginRequest.getPassword()
+                            username, password
                     );
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            LoginRequest loginRequest =
+//                    objectMapper.readValue(request.getInputStream(), LoginRequest.class);
+//
+//            UsernamePasswordAuthenticationToken authToken =
+//                    new UsernamePasswordAuthenticationToken(
+//                            loginRequest.getEmail(),
+//                            loginRequest.getPassword()
+//                    );
 
             return authenticationManager.authenticate(authToken);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("로그인 요청 파싱 실패");
         }
     }
