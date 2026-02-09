@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.controller;
+package com.bootcamp.paymentproject.common.controller;
 
 import com.bootcamp.paymentproject.common.config.AppProperties;
 import com.bootcamp.paymentproject.common.config.ClientApiProperties;

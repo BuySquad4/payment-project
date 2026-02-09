@@ -66,12 +66,12 @@ public class SecurityConfig {
             // 요청 권한 설정
             .authorizeHttpRequests(authorize -> authorize
 
-                    // 2) 템플릿 페이지 렌더링
-                    .requestMatchers(HttpMethod.GET, "/").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/pages/**").permitAll()
+                        // 2) 템플릿 페이지 렌더링
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/pages/**").permitAll()
 
-                    // 3) 공개 API
-                    .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                        // 3) 공개 API
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
 
                     // 정적 리소스
                     .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
@@ -79,8 +79,8 @@ public class SecurityConfig {
                     // 4) 인증 API
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
 
-                    // 5) 그 외 API는 인증 필요
-                    .requestMatchers("/api/**").authenticated()
+                        // 5) 그 외 API는 인증 필요
+                        .requestMatchers("/api/**").authenticated()
 
                     // 6) 나머지 전부 인증 필요
                     .anyRequest().authenticated()
