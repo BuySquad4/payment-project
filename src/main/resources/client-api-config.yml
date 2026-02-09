@@ -58,21 +58,21 @@ api:
               description: 로그인한 사용자 이메일
 
     register:
-      url:
-      method:
+      url: /api/auth/signup
+      method: POST
       description: 회원가입
       request:
         fields:
           - name: name
             type: string
             required: true
-          - name: email
-            type: string
-            required: true
           - name: password
             type: string
             required: true
           - name: phone
+            type: string
+            required: true
+          - name: email
             type: string
             required: true
       response:

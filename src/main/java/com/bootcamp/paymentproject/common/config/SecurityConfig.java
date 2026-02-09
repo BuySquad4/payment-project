@@ -1,6 +1,10 @@
 package com.bootcamp.paymentproject.common.config;
 
+import com.bootcamp.paymentproject.common.security.CustomUserDetailsService;
 import com.bootcamp.paymentproject.common.security.JwtAuthenticationFilter;
+import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
+import com.bootcamp.paymentproject.common.security.LoginFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,8 +23,6 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static org.springframework.boot.security.autoconfigure.web.servlet.PathRequest.toStaticResources;
-
 /**
  * Spring Security 설정 - JWT 기반 인증
  *
@@ -31,16 +33,24 @@ import static org.springframework.boot.security.autoconfigure.web.servlet.PathRe
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthenticationConfiguration authenticationConfiguration;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        LoginFilter loginFilter =
+                new LoginFilter(authenticationManager(authenticationConfiguration), jwtTokenProvider);
+        loginFilter.setFilterProcessesUrl("/api/auth/login");
+
         http
             // CSRF 비활성화 (JWT 사용 시 불필요)
             .csrf(AbstractHttpConfigurer::disable)
@@ -52,8 +62,6 @@ public class SecurityConfig {
 
             // 요청 권한 설정
             .authorizeHttpRequests(authorize -> authorize
-                     // 1) 정적 리소스
-                    .requestMatchers(toStaticResources().atCommonLocations()).permitAll()
 
                     // 2) 템플릿 페이지 렌더링
                     .requestMatchers(HttpMethod.GET, "/").permitAll()
@@ -63,17 +71,21 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
 
                     // 4) 인증 API
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
 
                     // 5) 그 외 API는 인증 필요
                     .requestMatchers("/api/**").authenticated()
 
                     // 6) 나머지 전부 인증 필요
                     .anyRequest().authenticated()
-            )
+            );
 
-            // JWT 필터 추가
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        // JWT 필터 추가
+        http
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService), LoginFilter.class);
+
+        http
+                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -82,26 +94,21 @@ public class SecurityConfig {
      * PasswordEncoder Bean
      */
     @Bean
-    public static PasswordEncoder passwordEncoder() {
+    public static BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Admin 계정 (InMemory - 데모용)
-     */
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.builder()
-            .username("admin@test.com")
-            .password(passwordEncoder.encode("admin"))
-            .roles("USER", "ADMIN")
-            .build();
-
-        return new InMemoryUserDetailsManager(admin);
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
-        return config.getAuthenticationManager();
-    }
+//    /**
+//     * Admin 계정 (InMemory - 데모용)
+//     */
+//    @Bean
+//    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+//        UserDetails admin = User.builder()
+//            .username("admin@test.com")
+//            .password(passwordEncoder.encode("admin"))
+//            .roles("USER", "ADMIN")
+//            .build();
+//
+//        return new InMemoryUserDetailsManager(admin);
+//    }
 }

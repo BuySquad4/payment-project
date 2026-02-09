@@ -1,6 +1,6 @@
-package com.bootcamp.paymentproject.repsitory;
+package com.bootcamp.paymentproject.user.repository;
 
-import com.bootcamp.paymentproject.entity.User;
+import com.bootcamp.paymentproject.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

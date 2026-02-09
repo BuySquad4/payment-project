@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.entity;
+package com.bootcamp.paymentproject.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

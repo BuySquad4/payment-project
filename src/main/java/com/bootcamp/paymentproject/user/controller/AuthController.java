@@ -1,12 +1,13 @@
-package com.bootcamp.paymentproject.controller;
+package com.bootcamp.paymentproject.user.controller;
 
+import com.bootcamp.paymentproject.common.dto.SignUpDto;
 import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
+import com.bootcamp.paymentproject.user.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -24,56 +25,13 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
 
-    /**
-     * 로그인 API
-     * POST /api/auth/login
-     *
-     * 요청 본문:
-     * {
-     *   "email": "user@example.com",
-     *   "password": "password123"
-     * }
-     *
-     * 응답 헤더:
-     * Authorization: Bearer eyJhbGc...
-     *
-     * 응답 본문:
-     * {
-     *   "success": true,
-     *   "email": "user@example.com"
-     * }
-     */
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String password = request.get("password");
-
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            // 1. 인증 시도
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
-            );
-
-            // 2. JWT 토큰 생성
-            String token = jwtTokenProvider.createToken(email);
-
-            // 3. 응답
-            response.put("success", true);
-            response.put("email", email);
-
-            return ResponseEntity.ok()
-                .header("Authorization", "Bearer " + token)
-                .body(response);
-
-        } catch (AuthenticationException e) {
-            // 인증 실패
-            response.put("success", false);
-            response.put("message", "이메일 또는 비밀번호가 올바르지 않습니다.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
+    @PostMapping("/signup")
+    public ResponseEntity<SignUpDto.Response> signup(
+            @Valid @RequestBody SignUpDto.Request request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(request));
     }
 
     /**
