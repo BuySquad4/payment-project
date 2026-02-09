@@ -12,13 +12,9 @@ import java.time.LocalDateTime;
 @Builder
 public class SignUpResponse {
     private boolean success;
-
     private String name;
-
     private String phoneNumber;
-
     private String email;
-
     private LocalDateTime createdAt;
 
     public static SignUpResponse fromEntity(User user){

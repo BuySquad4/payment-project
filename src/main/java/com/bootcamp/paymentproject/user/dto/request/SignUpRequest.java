@@ -17,7 +17,7 @@ public class SignUpRequest {
 
     @NotBlank(message = "폰번호는 필수 기입란 입니다.")
     @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "폰번호 형식이 올바르지 않습니다.")
-    private String phoneNumber;
+    private String phone;
 
     @NotBlank(message = "이메일은 필수 기입란 입니다.")
     @Email
