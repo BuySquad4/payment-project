@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.common.dto;
+package com.bootcamp.paymentproject.user.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;

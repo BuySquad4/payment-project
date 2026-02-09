@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.common.dto.response;
+package com.bootcamp.paymentproject.user.dto.response;
 
 import com.bootcamp.paymentproject.user.entity.User;
 import lombok.Builder;
