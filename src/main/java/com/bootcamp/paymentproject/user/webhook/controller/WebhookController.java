@@ -1,13 +1,11 @@
-package com.bootcamp.paymentproject.webhook.controller;
+package com.bootcamp.paymentproject.user.webhook.controller;
 
 import com.bootcamp.paymentproject.common.config.PortOneWebhookVerifier;
-import com.bootcamp.paymentproject.webhook.dto.PortoneWebhookPayload;
-import com.bootcamp.paymentproject.webhook.entity.WebhookEvent;
-import com.bootcamp.paymentproject.webhook.repository.WebhookEventRepository;
+import com.bootcamp.paymentproject.user.webhook.dto.PortoneWebhookPayload;
+import com.bootcamp.paymentproject.user.webhook.repository.WebhookEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 
 @RestController
 @Slf4j
