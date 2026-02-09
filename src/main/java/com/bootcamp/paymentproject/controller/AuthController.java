@@ -1,6 +1,6 @@
 package com.bootcamp.paymentproject.controller;
 
-import com.bootcamp.paymentproject.security.JwtTokenProvider;
+import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
