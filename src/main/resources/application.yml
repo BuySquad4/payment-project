@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: optional:file:./secret.yml
