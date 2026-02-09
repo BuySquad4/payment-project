@@ -1,7 +1,7 @@
-package com.bootcamp.paymentproject.user.webhook.entity;
+package com.bootcamp.paymentproject.webhook.entity;
 
 import com.bootcamp.paymentproject.common.entity.BaseEntity;
-import com.bootcamp.paymentproject.user.webhook.enums.WebhookEventStatus;
+import com.bootcamp.paymentproject.webhook.enums.WebhookEventStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

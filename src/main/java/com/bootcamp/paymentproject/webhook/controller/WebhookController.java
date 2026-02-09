@@ -1,8 +1,9 @@
-package com.bootcamp.paymentproject.user.webhook.controller;
+package com.bootcamp.paymentproject.webhook.controller;
 
 import com.bootcamp.paymentproject.common.config.PortOneWebhookVerifier;
-import com.bootcamp.paymentproject.user.webhook.dto.PortoneWebhookPayload;
-import com.bootcamp.paymentproject.user.webhook.repository.WebhookEventRepository;
+import com.bootcamp.paymentproject.common.dto.SuccessResponse;
+import com.bootcamp.paymentproject.webhook.dto.PortoneWebhookPayload;
+import com.bootcamp.paymentproject.webhook.repository.WebhookEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class WebhookController {
     private final WebhookEventRepository webhookEventRepository;
 
     @PostMapping(value = "/portone-webhook", consumes = "application/json")
-    public ResponseEntity<Void> handlePortoneWebhook(
+    public ResponseEntity<SuccessResponse<Void>> handlePortoneWebhook(
 
             // 1. 검증용 원문
             @RequestBody byte[] rawBody,
@@ -95,6 +96,8 @@ public class WebhookController {
         // 4) 처리 완료 마킹
         //    - webhook_event 테이블의 처리 완료 시각 업데이트
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                SuccessResponse.success(null, "webhook received successfully")
+        );
     }
 }
