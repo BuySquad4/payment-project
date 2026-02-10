@@ -7,7 +7,6 @@ import com.bootcamp.paymentproject.webhook.service.WebhookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,7 +52,7 @@ public class WebhookController {
         // 검증 실패 시 종료
         if (!verified) {
             log.warn("[PORTONE_WEBHOOK] signature verification failed");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.ok(SuccessResponse.success(null, "ignored"));
         }
 
         // 4. 검증 통과 후 DTO 변환
@@ -61,7 +60,7 @@ public class WebhookController {
         try {
             payload = objectMapper.readValue(rawBody, PortoneWebhookPayload.class);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.ok(SuccessResponse.success(null, "ignored"));
         }
 
         // 5. 이후부터는 “신뢰 가능한 데이터”
