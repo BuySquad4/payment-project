@@ -303,7 +303,7 @@
                         </span>
                     </td>
                     <td style="padding: 0.75rem; text-align: center;">
-                        ${order.status === 'PENDING' ?
+                        ${order.status === 'WAITING' ?
                             `<button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="payOrder('${order.orderId}', ${finalAmount})">
                                 💳 결제하기
                             </button>` :
