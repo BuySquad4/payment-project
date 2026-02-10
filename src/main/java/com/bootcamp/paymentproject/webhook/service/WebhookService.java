@@ -1,5 +1,9 @@
 package com.bootcamp.paymentproject.webhook.service;
 
+import com.bootcamp.paymentproject.common.exception.ErrorCode;
+import com.bootcamp.paymentproject.common.exception.ServiceException;
+import com.bootcamp.paymentproject.webhook.client.PortOneClient;
+import com.bootcamp.paymentproject.webhook.dto.PortonePaymentResponse;
 import com.bootcamp.paymentproject.webhook.dto.PortoneWebhookPayload;
 import com.bootcamp.paymentproject.webhook.entity.WebhookEvent;
 import com.bootcamp.paymentproject.webhook.repository.WebhookEventRepository;
@@ -14,26 +18,29 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class WebhookService {
 
-    // webhook_event 테이블 접근
     private final WebhookEventRepository webhookEventRepository;
+    private final PortOneClient portOneClient;
 
     /**
-     * PortOne에서 webhook이 오면 실행되는 메서드
-     * - 같은 webhookId는 한 번만 처리 (중복 방지)
-     * - 처리 성공/실패 상태를 DB에 저장
+     * PortOne webhook 처리 흐름
+     * 1) webhookId 멱등 처리
+     * 2) webhook_event 저장(RECEIVED)
+     * 3) PortOne 결제 조회(SSOT)
+     * 4) 결제/주문 상태 반영
+     * 5) webhook_event 처리 결과 기록(PROCESSED/FAILED)
      */
     @Transactional
     public void handleVerifiedWebhook(String webhookId,                    // 중복인지 확인
                                       String webhookTimestamp,             // 유효한 요청인지 확인
                                       PortoneWebhookPayload payload) {     // 실제 결제 처리
 
-        // 이미 처리된 webhook이면 아무것도 하지 않고 종료
+        // TODO 1) 멱등: 이미 처리된 webhookId면 종료
         if (webhookEventRepository.findByWebhookId(webhookId).isPresent()) {
             log.info("[PORTONE_WEBHOOK] duplicate webhookId={}, ignore", webhookId);
             return;
         }
 
-        // webhook 이벤트를 DB에 저장 (처리 시작 기록)
+        // 수신 이벤트 저장(RECEIVED)
         WebhookEvent event;
         try {
             event = WebhookEvent.received(
@@ -44,21 +51,36 @@ public class WebhookService {
             );
             webhookEventRepository.save(event);
         } catch (DataIntegrityViolationException e) {
-            // 같은 webhookId가 이미 DB에 있으면 중복 요청이므로 무시
+            // UNIQUE 제약으로 중복이면 무시
             log.info("[PORTONE_WEBHOOK] duplicate webhookId={}, ignore", webhookId);
             return;
         }
 
         try {
-            // TODO: 결제 조회 후 Payment / Order 상태 업데이트
+            // TODO 2) PortOne 결제 조회(SSOT)
+            String paymentId = payload.getData().getPaymentId();
 
-            // 처리 성공 → 상태를 PROCESSED로 변경
+            PortonePaymentResponse result = portOneClient.getPayment(paymentId);
+            if (result == null) {
+                throw new ServiceException(ErrorCode.PORTONE_RESPONSE_NULL);
+            }
+
+            log.info("[PORTONE_PAYMENT] paymentId={}, status={}, amount={}",
+                    result.getPaymentId(), result.getStatus(), result.getAmount());
+
+            // TODO 3) 결제/주문 상태 반영(Payment/Order 업데이트)
+
+            // TODO 4) 처리 완료 마킹
+            // 5) 처리 성공 기록(PROCESSED)
             event.markProcessed();
 
-        } catch (Exception ex) {
+        } catch (ServiceException ex) {
+            log.error("[PORTONE_WEBHOOK] processing failed webhookId={}, code={}",
+                    webhookId, ex.getErrorCode().getCode(), ex);
+            event.markFailed();
 
-            // 처리 실패 → 상태를 FAILED로 변경
-            log.error("[PORTONE_WEBHOOK] processing failed webhookId={}", webhookId, ex);
+        } catch (Exception ex) {
+            log.error("[PORTONE_WEBHOOK] unexpected error webhookId={}", webhookId, ex);
             event.markFailed();
         }
     }
