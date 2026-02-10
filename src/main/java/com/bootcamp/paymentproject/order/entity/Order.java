@@ -40,4 +40,8 @@ public class Order extends BaseEntity {
         this.status = OrderStatus.WAITING;
         this.orderedAt = LocalDateTime.now();
     }
+
+    public void orderCompleted() {
+        this.status = OrderStatus.COMPLETED;
+    }
 }

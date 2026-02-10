@@ -33,4 +33,10 @@ public class Product extends BaseEntity {
     private ProductStatus status;
 
     private String category;
+
+    public void decreaseStock(Long quantity) {
+        if(stock >= quantity) {
+            stock -= quantity;
+        }
+    }
 }

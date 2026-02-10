@@ -1,6 +1,7 @@
 package com.bootcamp.paymentproject.payment.entity;
 
 import com.bootcamp.paymentproject.common.entity.BaseEntity;
+import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,9 +34,32 @@ public class Payment extends BaseEntity {
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
-    public Payment(String paymentId, BigDecimal amount) {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    public Payment(String paymentId, BigDecimal amount, Order order) {
         this.paymentId = paymentId;
         this.amount = amount;
         status = PaymentStatus.PENDING;
+        this.order = order;
+    }
+
+    public void paymentFailed() {
+        if(this.status.canTransitToTargetStatus(PaymentStatus.FAILED)) {
+            this.status = PaymentStatus.FAILED;
+        }
+    }
+
+    public void paymentCanceled() {
+        if(this.status.canTransitToTargetStatus(PaymentStatus.CANCELED)) {
+            this.status = PaymentStatus.CANCELED;
+        }
+    }
+
+    public void paymentConfirmed() {
+        if(this.status.canTransitToTargetStatus(PaymentStatus.APPROVED)) {
+            this.status = PaymentStatus.APPROVED;
+        }
     }
 }
