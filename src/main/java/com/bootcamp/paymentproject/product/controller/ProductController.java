@@ -1,7 +1,7 @@
 package com.bootcamp.paymentproject.product.controller;
 
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
-import com.bootcamp.paymentproject.product.dto.response.ProductResponse;
+import com.bootcamp.paymentproject.product.dto.ProductResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.service.ProductService;
 import lombok.RequiredArgsConstructor;

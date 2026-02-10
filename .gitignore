@@ -36,5 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
-
+### 숨김 파일 ###
 secret.yml
+
+### 팁 ###
+주의사항.txt
