@@ -56,6 +56,9 @@ public class Order extends BaseEntity {
                 .multiply(BigDecimal.valueOf(orderproduct.getStock())));
     }
 
+    public void orderCompleted() {
+        this.status = OrderStatus.COMPLETED;
+    }
 }
 
 // id           : 주문 ID(뭔 상품인지)
