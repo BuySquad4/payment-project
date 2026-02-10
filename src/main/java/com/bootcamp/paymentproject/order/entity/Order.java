@@ -56,6 +56,9 @@ public class Order extends BaseEntity {
                 .multiply(BigDecimal.valueOf(orderproduct.getStock())));
     }
 
+    public void orderCompleted() {
+        this.status = OrderStatus.COMPLETED;
+    }
     public void orderCompleted() { this.status = OrderStatus.COMPLETED; }
     public void orderRefunded() { this.status = OrderStatus.REFUNDED; }
 }
