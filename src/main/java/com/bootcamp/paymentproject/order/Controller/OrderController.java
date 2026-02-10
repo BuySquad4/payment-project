@@ -1,8 +1,13 @@
 package com.bootcamp.paymentproject.order.Controller;
 
-import com.bootcamp.paymentproject.order.Repository.OrderRepository;
-import com.bootcamp.paymentproject.order.entity.Order;
+import com.bootcamp.paymentproject.common.dto.SuccessResponse;
+import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
+import com.bootcamp.paymentproject.order.dto.OrderCreateResponse;
+import com.bootcamp.paymentproject.order.dto.OrderGetResponse;
+import com.bootcamp.paymentproject.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,21 +17,39 @@ import java.util.List;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    private final OrderRepository orderRepository;
+    private final OrderService orderService;
 
     // 주문 생성
     @PostMapping
-    public Order createOrder(
-            @RequestBody Order order
+    public ResponseEntity<SuccessResponse<OrderCreateResponse>> createOrder(
+            @RequestBody OrderCreateRequest request
     ) {
-        return orderRepository.save(order);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(SuccessResponse.success(
+                        orderService.createOrder(request),
+                        "주문 생성 완료"
+                ));
     }
 
-    // 주문 조회
+    // 주문 조회 :
     @GetMapping
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public ResponseEntity<SuccessResponse<List<OrderGetResponse>>> getOrders() {
+
+        List<OrderGetResponse> responses = orderService.getAllOrders();
+
+        return ResponseEntity.ok(
+                SuccessResponse.success(responses, "주문 목록 조회 성공")
+        );
     }
 
+    // 주문 상세 조회 : 이거 단건 아님. id 는 해당 주문자의 id?
+    @GetMapping("/{id}")
+    public ResponseEntity<SuccessResponse<OrderGetResponse>> getOrder(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(
+                SuccessResponse.success(orderService.getOrder(id), "주문 조회 완료")
+        );
+    }
 
 }
