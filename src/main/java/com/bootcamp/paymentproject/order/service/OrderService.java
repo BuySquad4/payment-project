@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -33,10 +34,10 @@ public class OrderService {
             Product product = productRepository.findById(Long.valueOf(item.getProductId()))
                     .orElseThrow(() -> new RuntimeException("상품 없음"));
 
-            if (product.getStock() < item.getStock())
+            if (product.getStock() < item.getQuantity())
                 throw new RuntimeException("재고 부족");
 
-            OrderProduct op = new OrderProduct(product, (long) item.getStock(), order);
+            OrderProduct op = new OrderProduct(product, (long) item.getQuantity(), order);
             order.OrderProductAdd(op);
         }
 
@@ -67,10 +68,10 @@ public class OrderService {
 
         return new OrderGetResponse(
                 order.getOrderNumber(),
-                order.getId().toString(),
-                order.getTotalPrice().intValue(),
-                order.getTotalPrice().intValue(),
-                0,
+                order.getId(),
+                order.getTotalPrice(),
+                order.getTotalPrice(),
+                BigDecimal.ZERO,
                 "KRW",
                 order.getStatus().name(),
                 order.getOrderedAt()
@@ -80,10 +81,10 @@ public class OrderService {
     private OrderGetResponse toResponse(Order order) {
         return new OrderGetResponse(
                 order.getOrderNumber(),
-                order.getId().toString(),
-                order.getTotalPrice().intValue(),
-                order.getTotalPrice().intValue(), // 포인트 미사용
-                order.getTotalPrice().intValue() / 10, // 적립 10%
+                order.getId(),
+                order.getTotalPrice(),
+                order.getTotalPrice(), // 포인트 미사용
+                order.getTotalPrice(), // 적립 10%
                 "KRW",
                 order.getStatus().name(),
                 order.getCreatedAt()

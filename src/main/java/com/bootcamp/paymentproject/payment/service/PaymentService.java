@@ -34,11 +34,11 @@ public class PaymentService {
 
     @Transactional
     public CreatePaymentResponse createPayment(CreatePaymentRequest request) {
-        Order order = orderRepository.findByOrderNumber(request.getOrderId()).orElseThrow(
+        Order order = orderRepository.findById(request.getOrderId()).orElseThrow(
                 () -> new IllegalStateException("해당 주문을 찾지 못했습니다.")
         );
 
-        String paymentId = "payment-" + order.getOrderNumber() + "-" +LocalDateTime.now();
+        String paymentId = "payment-" + order.getId() + "-" +LocalDateTime.now();
         Payment payment = new Payment(paymentId, order.getTotalPrice(), order);
         paymentRepository.save(payment);
 

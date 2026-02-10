@@ -91,7 +91,7 @@
                     <div class="alert alert-info">
                         위 주문 목록에서 <strong>"결제하기"</strong> 버튼을 클릭하면 자동으로 진행됩니다:
                         <ol style="margin: 1rem 0 0 1.5rem; line-height: 1.8;">
-                            <li>서버에 결제 시작 요청 (PENDING 상태로 DB 저장)</li>
+                            <li>서버에 결제 시작 요청 (WAITING 상태로 DB 저장)</li>
                             <li>PortOne 결제창 열기</li>
                             <li>사용자 결제 진행</li>
                         </ol>
@@ -303,8 +303,8 @@
                         </span>
                     </td>
                     <td style="padding: 0.75rem; text-align: center;">
-                        ${order.status === 'PENDING' ?
-                            `<button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="payOrder('${order.orderId}', ${finalAmount})">
+                        ${order.status === 'WAITING' ?
+                            `<button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="payOrder(${order.orderId}, ${finalAmount})">
                                 💳 결제하기
                             </button>` :
                             `<span style="color: var(--text-secondary); font-size: 0.875rem;">-</span>`
@@ -324,7 +324,7 @@
             }
 
             // 해당 주문 찾기
-            const order = orders.find(o => o.orderId === orderId);
+            const order = orders.find(o => o.orderId == orderId);
             if (!order) {
                 showNotification('⚠️ 주문을 찾을 수 없습니다', 'error');
                 return;
@@ -402,7 +402,7 @@
         // 상태 스타일 반환
         function getStatusStyle(status) {
             const styles = {
-                'PENDING': 'background: #FEF3C7; color: #92400E;',
+                'WAITING': 'background: #FEF3C7; color: #92400E;',
                 'PAID': 'background: #D1FAE5; color: #065F46;',
                 'CANCELLED': 'background: #FEE2E2; color: #991B1B;',
                 'SHIPPED': 'background: #DBEAFE; color: #1E40AF;',
@@ -414,7 +414,7 @@
         // 상태 텍스트 반환
         function getStatusText(status) {
             const texts = {
-                'PENDING': '결제 대기',
+                'WAITING': '결제 대기',
                 'PAID': '결제 완료',
                 'CANCELLED': '취소됨',
                 'SHIPPED': '배송중',

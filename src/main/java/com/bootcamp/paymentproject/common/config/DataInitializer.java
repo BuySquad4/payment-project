@@ -23,7 +23,7 @@ public class DataInitializer implements CommandLineRunner {
             // 1번 상품
             productRepository.save(Product.builder()
                     .name("프리미엄 기계식 키보드")
-                    .price(BigDecimal.valueOf(120000L))
+                    .price(BigDecimal.valueOf(1000L))
                     .stock(50L)
                     .description("타건감이 예술인 기계식 키보드입니다.")
                     .status(ProductStatus.AVAILABLE)
@@ -33,7 +33,7 @@ public class DataInitializer implements CommandLineRunner {
             // 2번 상품
             productRepository.save(Product.builder()
                     .name("무선 인체공학 마우스")
-                    .price(BigDecimal.valueOf(45000L))
+                    .price(BigDecimal.valueOf(1000L))
                     .stock(30L)
                     .description("손목이 편안한 무선 마우스입니다.")
                     .status(ProductStatus.AVAILABLE)

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Getter
 @AllArgsConstructor
 public class CreatePaymentRequest {
-    private String orderId;
+    private Long orderId;
     private BigDecimal totalAmount;
     private BigDecimal pointsToUse;
 }
