@@ -13,7 +13,7 @@ public class OrderCreateRequest {
     @Getter
     public static class Item {
         private String productId;
-        private int stock;
+        private long stock;
     }
 }
 // items(array) : 주문 아이템 배열(상품명, 수량)
