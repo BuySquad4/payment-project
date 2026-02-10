@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j // 로그를 찍기 위해 추가했습니다.
 @Service
 @RequiredArgsConstructor
 public class OrderService {
