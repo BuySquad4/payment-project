@@ -1,14 +1,12 @@
 package com.bootcamp.paymentproject.product.controller;
 
-import com.bootcamp.paymentproject.common.dto.SuccessResponse; // 👈 방금 만든 DTO 임포트
+import com.bootcamp.paymentproject.common.dto.SuccessResponse;
+import com.bootcamp.paymentproject.product.dto.response.ProductResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
-import com.bootcamp.paymentproject.product.repository.ProductRepository;
+import com.bootcamp.paymentproject.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,14 +15,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<SuccessResponse<List<Product>>> getAllProducts() {
-        // 1. DB에서 상품 목록을 가져옵니다.
-        List<Product> products = productRepository.findAll();
+    public ResponseEntity<SuccessResponse<List<ProductResponse>>> getAllProducts() {
+        List<ProductResponse> responses = productService.getAllProducts()
+                .stream()
+                .map(ProductResponse::from)
+                .toList();
 
-        // 2. 그냥 보내지 말고 ApiResponse.success() 봉투에 담아서 보냅니다.
-        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success(products,"주문이 성공적으로 조회했습니다"));
+        return ResponseEntity.ok(SuccessResponse.success(responses, "상품 목록 조회가 완료되었습니다."));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SuccessResponse<ProductResponse>> getProductById(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        ProductResponse response = ProductResponse.from(product);
+
+        return ResponseEntity.ok(SuccessResponse.success(response, "상품 상세 조회가 완료되었습니다."));
     }
 }
