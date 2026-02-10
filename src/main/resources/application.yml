@@ -3,6 +3,9 @@ spring:
     import: optional:file:./secret.yml
 
 portone:
+  api:
+    base-url: https://api.portone.io
+    secret: ${PORTONE_API_SECRET:}
   webhook:
     secret: demo-webhook-secret-key
     secret-format: raw

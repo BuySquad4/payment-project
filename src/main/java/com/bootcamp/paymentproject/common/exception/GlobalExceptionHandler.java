@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.common.exception;
 
+import com.bootcamp.paymentproject.portone.exception.PortOneApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ErrorResponse> handleServiceException(ServiceException e, HttpServletRequest request) {
         return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(ErrorResponse.of(e.getErrorCode(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(PortOneApiException.class)
+    public ResponseEntity<ErrorResponse> handlePortOneApiException(PortOneApiException e, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getHttpStatus().value(),
+                e.getErrorCode(),
+                e.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        ) ;
+        return ResponseEntity.status(e.getHttpStatus()).body(errorResponse);
     }
 }

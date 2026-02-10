@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductResponse {
 
-    private Long id;
+    private String id;
     private String name;
     private BigDecimal price;
     private Long stock;
@@ -26,7 +26,7 @@ public class ProductResponse {
 
     public static ProductResponse from(Product product) {
         return ProductResponse.builder()
-                .id(product.getId())
+                .id(String.valueOf(product.getId()))
                 .name(product.getName())
                 .price(product.getPrice())
                 .stock(product.getStock())
