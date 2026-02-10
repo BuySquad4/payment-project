@@ -32,7 +32,7 @@ public class PortoneClientImpl implements PortOneClient {
         // 결제 조회 API URL 생성
         String url = baseUrl + "/payments/" + paymentId;
 
-        // Authorization 헤더 설정 (Bearer Token 방식)
+        // Authorization 헤더 설정 (PortOne 전용 방식)
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "PortOne " + apiSecret);
 
