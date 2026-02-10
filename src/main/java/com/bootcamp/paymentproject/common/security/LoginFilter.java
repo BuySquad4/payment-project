@@ -1,6 +1,7 @@
 package com.bootcamp.paymentproject.common.security;
 
 import com.bootcamp.paymentproject.common.dto.CustomUserDetails;
+import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.user.dto.request.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -16,6 +17,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -32,13 +35,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
-//            String username = obtainUseremail(request);
-//            String password = obtainPassword(request);
-//
-//            UsernamePasswordAuthenticationToken authToken =
-//                    new UsernamePasswordAuthenticationToken(
-//                            username, password
-//                    );
             ObjectMapper objectMapper = new ObjectMapper();
             LoginRequest loginRequest =
                     objectMapper.readValue(request.getInputStream(), LoginRequest.class);
@@ -65,6 +61,17 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String token = jwtTokenProvider.createToken(email);
 
         response.addHeader("Authorization", "Bearer " + token);
+
+        // SuccessResponse 생성
+        SuccessResponse<Void> body =
+                SuccessResponse.success(null, "로그인 성공");
+
+        // JSON 응답
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json;charset=UTF-8");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(body));
     }
 
     @Override
@@ -73,16 +80,15 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             HttpServletResponse response,
             AuthenticationException failed) throws IOException {
 
-        String message = "로그인에 실패하였습니다.";
-        int status = 400;
-
-        response.setStatus(status);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("""
-        {
-          "status": %d,
-          "message": "%s"
-        }
-        """.formatted(status, message));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("success", false);
+        body.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
+
+        response.getWriter().write(objectMapper.writeValueAsString(body));
     }
 }

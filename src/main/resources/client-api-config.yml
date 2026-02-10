@@ -77,6 +77,10 @@ api:
             required: true
       response:
         body:
+#          fields:
+#            - name: data
+#              type: object
+#              required: true
           fields:
             - name: success
               type: boolean
