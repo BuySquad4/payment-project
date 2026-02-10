@@ -75,46 +75,74 @@
             // 에러 메시지 숨기기
             errorMessage.style.display = 'none';
 
+<!--            try {-->
+<!--                // returnHeaders: true 옵션으로 헤더도 받아오기-->
+<!--                const result = await makeApiRequest('login', {-->
+<!--                    body: {-->
+<!--                        email: email,-->
+<!--                        password: password-->
+<!--                    },-->
+<!--                    returnHeaders: true-->
+<!--                });-->
+
+<!--                // YML 스키마 기반 자동 검증-->
+<!--                if (!validateApiResponse('login', result.data, result.headers)) {-->
+<!--                    errorText.textContent = 'API 응답 형식이 올바르지 않습니다.';-->
+<!--                    errorMessage.style.display = 'block';-->
+<!--                    return;-->
+<!--                }-->
+
+<!--                if (result.data.success) {-->
+<!--                    // Authorization 헤더에서 토큰 추출-->
+<!--                    const authHeader = result.headers['authorization'];-->
+<!--                    if (authHeader && authHeader.startsWith('Bearer ')) {-->
+<!--                        const token = authHeader.substring(7);  // "Bearer " 제거-->
+
+<!--                        // JWT 토큰을 쿠키에 저장-->
+<!--                        saveToken(token);-->
+
+<!--                        // 홈으로 이동-->
+<!--                        window.location.href = '/';-->
+<!--                    } else {-->
+<!--                        errorText.textContent = '토큰을 받을 수 없습니다.';-->
+<!--                        errorMessage.style.display = 'block';-->
+<!--                    }-->
+<!--                } else {-->
+<!--                    // 로그인 실패-->
+<!--                    errorText.textContent = result.data.message || '이메일 또는 비밀번호가 올바르지 않습니다.';-->
+<!--                    errorMessage.style.display = 'block';-->
+<!--                }-->
+<!--            } catch (error) {-->
+<!--                console.error('로그인 오류:', error);-->
+<!--                errorText.textContent = '로그인 중 오류가 발생했습니다.';-->
+<!--                errorMessage.style.display = 'block';-->
+<!--            }-->
             try {
-                // returnHeaders: true 옵션으로 헤더도 받아오기
                 const result = await makeApiRequest('login', {
-                    body: {
-                        email: email,
-                        password: password
-                    },
+                    body: { email, password },
                     returnHeaders: true
                 });
 
-                // YML 스키마 기반 자동 검증
-                if (!validateApiResponse('login', result.data, result.headers)) {
-                    errorText.textContent = 'API 응답 형식이 올바르지 않습니다.';
+                // success 필드 체크 제거
+                const authHeader = result.headers['authorization'];
+
+                if (!authHeader) {
+                    errorText.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
                     errorMessage.style.display = 'block';
                     return;
                 }
 
-                if (result.data.success) {
-                    // Authorization 헤더에서 토큰 추출
-                    const authHeader = result.headers['authorization'];
-                    if (authHeader && authHeader.startsWith('Bearer ')) {
-                        const token = authHeader.substring(7);  // "Bearer " 제거
+                const token = authHeader.replace('Bearer ', '');
+                saveToken(token);
+                window.location.href = '/';
 
-                        // JWT 토큰을 쿠키에 저장
-                        saveToken(token);
-
-                        // 홈으로 이동
-                        window.location.href = '/';
-                    } else {
-                        errorText.textContent = '토큰을 받을 수 없습니다.';
-                        errorMessage.style.display = 'block';
-                    }
-                } else {
-                    // 로그인 실패
-                    errorText.textContent = result.data.message || '이메일 또는 비밀번호가 올바르지 않습니다.';
-                    errorMessage.style.display = 'block';
-                }
             } catch (error) {
-                console.error('로그인 오류:', error);
-                errorText.textContent = '로그인 중 오류가 발생했습니다.';
+                // 401을 정상 실패로 처리
+                if (error.status === 401 || error.status === 403) {
+                    errorText.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+                } else {
+                    errorText.textContent = '서버 오류가 발생했습니다.';
+                }
                 errorMessage.style.display = 'block';
             }
         }
