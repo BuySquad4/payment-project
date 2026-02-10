@@ -13,7 +13,12 @@ public enum ErrorCode {
     PORTONE_UNAUTHORIZED("PORTONE_UNAUTHORIZED", "PortOne 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
     PORTONE_PAYMENT_NOT_FOUND("PORTONE_PAYMENT_NOT_FOUND", "PortOne에서 결제 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     PORTONE_API_ERROR("PORTONE_API_ERROR", "PortOne API 호출 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
-    PORTONE_RESPONSE_NULL("PORTONE_RESPONSE_NULL", "PortOne 응답이 비어있습니다.", HttpStatus.BAD_GATEWAY);
+    PORTONE_RESPONSE_NULL("PORTONE_RESPONSE_NULL", "PortOne 응답이 비어있습니다.", HttpStatus.BAD_GATEWAY),
+
+    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다.", HttpStatus.NOT_FOUND),
+
+    INVALID_PAYMENT_STATUS_TRANSITION("INVALID_PAYMENT_STATUS_TRANSITION", "유효하지 않은 결제 상태 전이입니다.", HttpStatus.BAD_REQUEST);
+
 
     private final String code;
     private final String message;

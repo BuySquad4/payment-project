@@ -44,4 +44,5 @@ public class Order extends BaseEntity {
     public void orderCompleted() {
         this.status = OrderStatus.COMPLETED;
     }
+    public void orderRefunded() { this.status = OrderStatus.REFUNDED; }
 }
