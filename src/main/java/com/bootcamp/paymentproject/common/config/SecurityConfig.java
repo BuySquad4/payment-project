@@ -75,7 +75,8 @@ public class SecurityConfig {
 
                     // 3) 공개 API
                     .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
-
+                    .requestMatchers(HttpMethod.GET, "/api/points/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                     // 4) 인증 API
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
 
