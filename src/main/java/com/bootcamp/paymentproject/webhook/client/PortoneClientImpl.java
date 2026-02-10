@@ -3,7 +3,6 @@ package com.bootcamp.paymentproject.webhook.client;
 import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.common.exception.ServiceException;
 import com.bootcamp.paymentproject.webhook.dto.PortonePaymentResponse;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
