@@ -56,6 +56,7 @@ public class Order extends BaseEntity {
                 .multiply(BigDecimal.valueOf(orderproduct.getStock())));
     }
 
+    public void orderCompleted() { this.status = OrderStatus.COMPLETED; }
     public void orderRefunded() { this.status = OrderStatus.REFUNDED; }
 }
 
@@ -69,4 +70,3 @@ public class Order extends BaseEntity {
 //
 // 생성일과 수정일은 entity에
 // orderedAt    : 주문일
-
