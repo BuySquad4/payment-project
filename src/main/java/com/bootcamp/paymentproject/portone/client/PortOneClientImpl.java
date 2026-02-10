@@ -1,8 +1,8 @@
-package com.bootcamp.paymentproject.webhook.client;
+package com.bootcamp.paymentproject.portone.client;
 
 import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.common.exception.ServiceException;
-import com.bootcamp.paymentproject.webhook.dto.PortonePaymentResponse;
+import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 @RequiredArgsConstructor
-public class PortoneClientImpl implements PortOneClient {
+public class PortOneClientImpl implements PortOneClient {
 
     private final RestTemplate restTemplate;
 
@@ -26,7 +26,7 @@ public class PortoneClientImpl implements PortOneClient {
     private String apiSecret;
 
     @Override
-    public PortonePaymentResponse getPayment(String paymentId) {
+    public PortOnePaymentResponse getPayment(String paymentId) {
 
         // 결제 조회 API URL 생성
         String url = baseUrl + "/payments/" + paymentId;
@@ -39,15 +39,15 @@ public class PortoneClientImpl implements PortOneClient {
 
         try {
             // PortOne 결제 조회 요청 (SSOT)
-            ResponseEntity<PortonePaymentResponse> response = restTemplate.exchange(
+            ResponseEntity<PortOnePaymentResponse> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     entity,
-                    PortonePaymentResponse.class
+                    PortOnePaymentResponse.class
             );
 
             // 응답 body 추출 및 null 체크
-            PortonePaymentResponse body = response.getBody();
+            PortOnePaymentResponse body = response.getBody();
             if (body == null) {
                 // 응답이 비어있는 경우 → 시스템 예외로 변환
                 throw new ServiceException(ErrorCode.PORTONE_RESPONSE_NULL);

@@ -7,10 +7,10 @@ import com.bootcamp.paymentproject.order.entity.OrderProduct;
 import com.bootcamp.paymentproject.payment.entity.Payment;
 import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import com.bootcamp.paymentproject.payment.repository.PaymentRepository;
+import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
+import com.bootcamp.paymentproject.portone.client.PortOneClient;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
-import com.bootcamp.paymentproject.webhook.client.PortOneClient;
-import com.bootcamp.paymentproject.webhook.dto.PortonePaymentResponse;
 import com.bootcamp.paymentproject.webhook.dto.PortoneWebhookPayload;
 import com.bootcamp.paymentproject.webhook.entity.WebhookEvent;
 import com.bootcamp.paymentproject.webhook.repository.WebhookEventRepository;
@@ -53,7 +53,7 @@ public class WebhookService {
         // TODO 2) PortOne 결제 조회(SSOT)
         String paymentId = payload.getData().getPaymentId();
 
-        PortonePaymentResponse result = portOneClient.getPayment(paymentId);
+        PortOnePaymentResponse result = portOneClient.getPayment(paymentId);
         if (result == null) {
             throw new ServiceException(ErrorCode.PORTONE_RESPONSE_NULL);
         }
@@ -137,7 +137,7 @@ public class WebhookService {
     public void handleAfterFetch(String webhookId,                    // 중복인지 확인
                                       String webhookTimestamp,             // 유효한 요청인지 확인
                                       PortoneWebhookPayload payload,       // 실제 결제 처리
-                                      PortonePaymentResponse result) {
+                                      PortOnePaymentResponse result) {
 
         // TODO 1) 멱등: 이미 처리된 webhookId면 종료
         if (webhookEventRepository.findByWebhookId(webhookId).isPresent()) {
@@ -173,7 +173,7 @@ public class WebhookService {
             Order order = payment.getOrder();
 
             // 금액 검증 (PortOne 금액 vs 우리 주문 금액)
-            BigDecimal portoneAmount = result.getAmount() != null ? result.getAmount().getTotal() : null;
+            BigDecimal portoneAmount = result.amount() != null ? result.amount().total() : null;
             BigDecimal orderAmount = order.getTotalPrice();
 
             if (portoneAmount == null ||
