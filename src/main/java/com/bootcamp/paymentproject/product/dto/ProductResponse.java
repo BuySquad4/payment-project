@@ -3,13 +3,17 @@ package com.bootcamp.paymentproject.product.dto;
 
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.enums.ProductStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductResponse {
 
     private Long id;
