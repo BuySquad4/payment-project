@@ -19,6 +19,10 @@ public enum ErrorCode {
     // Refund
     PAYMENT_NOT_REFUNDABLE("PAYMENT_NOT_REFUNDABLE", "환불 가능한 결제 상태가 아닙니다.", HttpStatus.CONFLICT),
     REFUND_NOT_FOUND("REFUND_NOT_FOUND", "존재하지 않는 환불 정보입니다.", HttpStatus.NOT_FOUND);
+    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다.", HttpStatus.NOT_FOUND),
+
+    INVALID_PAYMENT_STATUS_TRANSITION("INVALID_PAYMENT_STATUS_TRANSITION", "유효하지 않은 결제 상태 전이입니다.", HttpStatus.BAD_REQUEST);
+
 
     private final String code;
     private final String message;

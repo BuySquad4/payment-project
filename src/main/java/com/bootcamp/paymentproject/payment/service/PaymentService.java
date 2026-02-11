@@ -11,7 +11,6 @@ import com.bootcamp.paymentproject.payment.entity.Payment;
 import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import com.bootcamp.paymentproject.payment.exception.PaymentNotFoundException;
 import com.bootcamp.paymentproject.payment.repository.PaymentRepository;
-import com.bootcamp.paymentproject.portone.PortOneClient;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;

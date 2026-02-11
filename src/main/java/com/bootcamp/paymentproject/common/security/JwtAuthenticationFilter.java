@@ -72,6 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (JwtException | IllegalArgumentException e) {
             sendError(response, 401, "토큰이 만료되었거나 존재하지 않습니다.");
+            return;
         }
 
         filterChain.doFilter(request, response);

@@ -77,6 +77,22 @@ public record PortOnePaymentResponse(
     ) {
     }
 
+    public String getPaymentId() {
+        return id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public Amount getAmount() {
+        return amount;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return amount != null ? amount.total() : null;
+    }
+
     public boolean isPaid() {
         return "PAID".equalsIgnoreCase(status);
     }
