@@ -62,4 +62,16 @@ public class Payment extends BaseEntity {
             this.status = PaymentStatus.APPROVED;
         }
     }
+
+    public void paymentRefunded() {
+        if(this.status.canTransitToTargetStatus(PaymentStatus.REFUNDED)) {
+            this.status = PaymentStatus.REFUNDED;
+        }
+    }
+
+    public void paymentRefundFailed(){
+        if(this.status.canTransitToTargetStatus(PaymentStatus.REFUND_FAILED)) {
+            this.status = PaymentStatus.REFUND_FAILED;
+        }
+    }
 }

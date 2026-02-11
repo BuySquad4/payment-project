@@ -68,8 +68,6 @@ public class PaymentService {
 
         // 주문 금액과 실결제 금액이 다를 때 환불 프로세스 진행
         if((dbPayment.getAmount().compareTo(portOnePayment.amount().total())) != 0) {
-            dbPayment.paymentCanceled();
-            dbPayment.getOrder().orderPendingRefund();
             return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, true,"결제 금액이 상이하여 결제가 취소처리 되었습니다.");
         }
 
@@ -93,16 +91,13 @@ public class PaymentService {
 
         // 주문한 상품 목록이 db에 저장된 상품 목록과 맞지 않을 때 환불 프로세스 진행
         if(byOrderId.size() != OrderedProductList.size()) {
-            dbPayment.paymentCanceled();
-            dbPayment.getOrder().orderPendingRefund();
             return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, true,"주문 상품 정보가 일치하지 않아 결제가 취소되었습니다.");
         }
 
         // 주문한 상품 수량이 db에 저장된 상품 재고보다 많을 때 환불 프로세스 진행
         for(Product p : OrderedProductList) {
             if(p.getStock() < productMap.get(p.getId())) {
-                dbPayment.paymentCanceled();
-                dbPayment.getOrder().orderPendingRefund();
+
                 return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, true,"상품의 재고가 부족하여 결제가 취소되었습니다.");
             } else {
                 p.decreaseStock(productMap.get(p.getId()));
