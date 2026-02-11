@@ -50,8 +50,40 @@ public class WebhookService {
                                       String webhookTimestamp,             // 유효한 요청인지 확인
                                       PortoneWebhookPayload payload) {     // 실제 결제 처리
 
+        // 이거 추가
+        log.info("[WEBHOOK_SERVICE] entered. webhookId={}, paymentId={}",
+                webhookId,
+                payload.getData().getPaymentId());
+
         // TODO 2) PortOne 결제 조회(SSOT)
         String paymentId = payload.getData().getPaymentId();
+
+        // 이거 추가
+        log.info("[PORTONE_CALL] before getPayment. paymentId={}", paymentId);
+
+        try {
+            long start = System.currentTimeMillis();
+
+            PortOnePaymentResponse result = portOneClient.getPayment(paymentId);
+
+            long took = System.currentTimeMillis() - start;
+            log.info("[PORTONE_CALL] after getPayment. tookMs={}", took);
+
+            if (result == null) {
+                log.warn("[PORTONE_CALL] result is null");
+                throw new ServiceException(ErrorCode.PORTONE_RESPONSE_NULL);
+            }
+
+            log.info("[PORTONE_PAYMENT] paymentId={}, status={}, amount={}",
+                    result.getPaymentId(), result.getStatus(), result.getAmount());
+
+            handleAfterFetch(webhookId, webhookTimestamp, payload, result);
+
+        } catch (Exception e) {
+            log.error("[PORTONE_CALL] getPayment FAILED. paymentId={}", paymentId, e);
+            throw e;
+        }
+        //
 
         PortOnePaymentResponse result = portOneClient.getPayment(paymentId);
         if (result == null) {
@@ -60,6 +92,13 @@ public class WebhookService {
 
         log.info("[PORTONE_PAYMENT] paymentId={}, status={}, amount={}",
                 result.getPaymentId(), result.getStatus(), result.getAmount());
+
+        // 이거 추가
+        log.info("[WEBHOOK_SERVICE] calling handleAfterFetch. webhookId={}, paymentId={}",
+                webhookId, paymentId);
+
+        handleAfterFetch(webhookId, webhookTimestamp, payload, result);
+
 
         // 외부 API 조회가 끝난 다음에, DB 반영 로직만 트랜잭션으로 처리
         handleAfterFetch(webhookId, webhookTimestamp, payload, result);

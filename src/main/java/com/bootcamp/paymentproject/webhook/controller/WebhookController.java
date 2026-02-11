@@ -5,6 +5,7 @@ import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.webhook.dto.PortoneWebhookPayload;
 import com.bootcamp.paymentproject.webhook.service.WebhookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +28,10 @@ public class WebhookController {
     /**
      * PortOne webhook 수신 API
      */
-    @PostMapping(value = "/portone-webhook", consumes = "application/json")
+    @PostMapping(value = "/portone-webhook")
     public ResponseEntity<SuccessResponse<Void>> handlePortoneWebhook(
+
+            HttpServletRequest request,   // 🔥 이 줄 추가
 
             // 1. 검증용 원문
             @RequestBody byte[] rawBody,
@@ -38,6 +41,18 @@ public class WebhookController {
             @RequestHeader("webhook-timestamp") String webhookTimestamp,
             @RequestHeader("webhook-signature") String webhookSignature
     ) {
+
+        // 이 줄 추가
+        log.info("content-type={}", request.getContentType());
+
+        // 이 줄 추가
+        log.info("✅ webhook controller entered");
+
+        // 헤더 확인용 로그도 추가
+        log.info("webhook-id={}", webhookId);
+        log.info("webhook-timestamp={}", webhookTimestamp);
+        log.info("webhook-signature={}", webhookSignature);
+
         // 요청 로그 출력
         log.info(
                 "[PORTONE_WEBHOOK] id={} ts={} body={}",

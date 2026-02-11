@@ -7,5 +7,5 @@ portone:
     base-url: https://api.portone.io
     secret: ${PORTONE_API_SECRET:}
   webhook:
-    secret: demo-webhook-secret-key
+    secret: whsec_Rox/VRThQsgN0nop7RxWMydDaH0k4tHMqCdNgSm7LdU=
     secret-format: raw

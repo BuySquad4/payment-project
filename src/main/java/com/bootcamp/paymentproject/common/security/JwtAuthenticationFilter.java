@@ -31,6 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.equals("/portone-webhook");
+    }
+
+    @Override
     protected void doFilterInternal(
         HttpServletRequest request,
         HttpServletResponse response,
@@ -72,6 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (JwtException | IllegalArgumentException e) {
             sendError(response, 401, "토큰이 만료되었거나 존재하지 않습니다.");
+            return;
         }
 
         filterChain.doFilter(request, response);
