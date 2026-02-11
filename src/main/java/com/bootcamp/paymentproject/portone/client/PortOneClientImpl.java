@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.portone.client;
 
+import com.bootcamp.paymentproject.common.config.PortOneProperties;
 import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.common.exception.ServiceException;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 public class PortOneClientImpl implements PortOneClient {
 
     private final RestTemplate restTemplate;
+    private final PortOneProperties portOneProperties;
 
     @Value("${portone.api.base-url:https://api.portone.io}")
     private String baseUrl;
@@ -29,7 +31,8 @@ public class PortOneClientImpl implements PortOneClient {
     public PortOnePaymentResponse getPayment(String paymentId) {
 
         // 결제 조회 API URL 생성
-        String url = baseUrl + "/payments/" + paymentId;
+        String url = baseUrl + "/payments/" + paymentId +
+                "?storeId=" + portOneProperties.getStore().getId();
 
         // Authorization 헤더 설정 (PortOne 전용 방식)
         HttpHeaders headers = new HttpHeaders();

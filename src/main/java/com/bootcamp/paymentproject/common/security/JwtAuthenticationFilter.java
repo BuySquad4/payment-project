@@ -31,12 +31,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        return uri.equals("/portone-webhook");
-    }
-
-    @Override
     protected void doFilterInternal(
         HttpServletRequest request,
         HttpServletResponse response,

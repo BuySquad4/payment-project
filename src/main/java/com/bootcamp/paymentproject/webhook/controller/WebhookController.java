@@ -42,12 +42,6 @@ public class WebhookController {
             @RequestHeader("webhook-signature") String webhookSignature
     ) {
 
-        // 이 줄 추가
-        log.info("content-type={}", request.getContentType());
-
-        // 이 줄 추가
-        log.info("✅ webhook controller entered");
-
         // 헤더 확인용 로그도 추가
         log.info("webhook-id={}", webhookId);
         log.info("webhook-timestamp={}", webhookTimestamp);
