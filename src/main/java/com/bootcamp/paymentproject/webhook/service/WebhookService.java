@@ -61,9 +61,6 @@ public class WebhookService {
         log.info("[PORTONE_PAYMENT] paymentId={}, status={}, amount={}",
                 result.getPaymentId(), result.getStatus(), result.getAmount());
 
-        handleAfterFetch(webhookId, webhookTimestamp, payload, result);
-
-
         // 외부 API 조회가 끝난 다음에, DB 반영 로직만 트랜잭션으로 처리
         handleAfterFetch(webhookId, webhookTimestamp, payload, result);
     }
@@ -137,7 +134,7 @@ public class WebhookService {
      * - 멱등 처리 + webhook_event 저장 + Payment/Order 상태 업데이트 + 처리 결과 기록
      */
     @Transactional
-    public void handleAfterFetch(String webhookId,                    // 중복인지 확인
+    public void handleAfterFetch(String webhookId,                         // 중복인지 확인
                                       String webhookTimestamp,             // 유효한 요청인지 확인
                                       PortoneWebhookPayload payload,       // 실제 결제 처리
                                       PortOnePaymentResponse result) {
