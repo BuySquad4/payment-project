@@ -3,6 +3,7 @@ package com.bootcamp.paymentproject.order.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -10,10 +11,10 @@ import java.time.LocalDateTime;
 public class OrderGetResponse {
 
     private String orderNumber;     // 사용자에게 보임
-    private String orderId;         // 시스템 식별자
-    private int totalAmount;        // 주문 금액
-    private int finalAmount;        // 포인트 사용 후 금액
-    private int earnedPoints;       // 적립 포인트
+    private Long orderId;         // 시스템 식별자
+    private BigDecimal totalAmount;        // 주문 금액
+    private BigDecimal finalAmount;        // 포인트 사용 후 금액
+    private BigDecimal earnedPoints;       // 적립 포인트
     private String currency;        // 금액(KRW)
     private String status;          // WAITING, COMPLETED, REFUNDED
     private LocalDateTime createdAt;

@@ -9,10 +9,10 @@ import com.bootcamp.paymentproject.order.entity.OrderProduct;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j; // 로그용 추가
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j // 로그를 찍기 위해 추가했습니다.
@@ -25,26 +25,20 @@ public class OrderService {
 
     // 주문 생성
     @Transactional
-    public OrderCreateResponse createOrder(OrderCreateRequest request) {
+    public OrderCreateResponse createOrder(
+            OrderCreateRequest request
+    ) {
         Order order = Order.create();
 
+        // 요청 시 재고 확인
         for (OrderCreateRequest.Item item : request.getItems()) {
             Product product = productRepository.findById(Long.valueOf(item.getProductId()))
                     .orElseThrow(() -> new RuntimeException("상품 없음"));
 
-            // [수정] 프론트에서 0이 넘어오더라도 최소 1로 보정합니다.
-            long orderStock = Math.max(1L, (long) item.getStock());
-
-            // 데이터가 제대로 안 들어왔을 때 범인을 찾기 위해 로그를 남깁니다.
-            if (item.getStock() <= 0) {
-                log.warn("⚠️ 프론트에서 수량이 0 이하로 넘어왔습니다! (보정 전: {}, 상품ID: {})", item.getStock(), item.getProductId());
-            }
-
-            if (product.getStock() < orderStock)
+            if (product.getStock() < item.getQuantity())
                 throw new RuntimeException("재고 부족");
 
-            // 보정된 orderStock을 사용합니다.
-            OrderProduct op = new OrderProduct(product, orderStock, order);
+            OrderProduct op = new OrderProduct(product, (long) item.getQuantity(), order);
             order.OrderProductAdd(op);
         }
 
@@ -57,30 +51,44 @@ public class OrderService {
         );
     }
 
-    // ... 아래 조회 로직들은 기존과 동일하므로 생략 (그대로 두시면 됩니다)
-
+    // 주문 조회
     @Transactional(readOnly = true)
     public List<OrderGetResponse> getAllOrders() {
-        return orderRepository.findAll().stream().map(this::toResponse).toList();
+        return orderRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
+    // 주문 상세 조회
     @Transactional(readOnly = true)
     public OrderGetResponse getOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문 없음"));
+                .orElseThrow(() -> new RuntimeException("주문 없음")
+        );
+
         return new OrderGetResponse(
-                order.getOrderNumber(), order.getId().toString(),
-                order.getTotalPrice().intValue(), order.getTotalPrice().intValue(),
-                0, "KRW", order.getStatus().name(), order.getOrderedAt()
+                order.getOrderNumber(),
+                order.getId(),
+                order.getTotalPrice(),
+                order.getTotalPrice(),
+                BigDecimal.ZERO,
+                "KRW",
+                order.getStatus().name(),
+                order.getOrderedAt()
         );
     }
 
     private OrderGetResponse toResponse(Order order) {
         return new OrderGetResponse(
-                order.getOrderNumber(), order.getId().toString(),
-                order.getTotalPrice().intValue(), order.getTotalPrice().intValue(),
-                order.getTotalPrice().intValue() / 10, "KRW",
-                order.getStatus().name(), order.getCreatedAt()
+                order.getOrderNumber(),
+                order.getId(),
+                order.getTotalPrice(),
+                order.getTotalPrice(), // 포인트 미사용
+                order.getTotalPrice(), // 적립 10%
+                "KRW",
+                order.getStatus().name(),
+                order.getCreatedAt()
         );
     }
 }

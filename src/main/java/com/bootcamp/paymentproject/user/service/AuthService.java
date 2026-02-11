@@ -1,6 +1,7 @@
 package com.bootcamp.paymentproject.user.service;
 
 import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
+import com.bootcamp.paymentproject.user.dto.response.GetCurrentUserResponse;
 import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
 import com.bootcamp.paymentproject.user.entity.User;
 import com.bootcamp.paymentproject.user.repository.UserRepository;
@@ -32,5 +33,15 @@ public class AuthService {
         userRepository.save(user);
 
         return SignUpResponse.fromEntity(user);
+    }
+
+    @Transactional(readOnly = true)
+    public GetCurrentUserResponse getCurrentUser(String email) {
+
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new IllegalArgumentException("일치하는 유저가 없습니다.")
+        );
+
+        return GetCurrentUserResponse.fromEntity(user);
     }
 }

@@ -120,7 +120,7 @@ api:
               usage: PortOne payment window customer.phoneNumber
             - name: pointBalance
               type: number
-              required: true
+              required: false
               description: 현재 포인트 잔액
 
     # ========================================
@@ -191,7 +191,7 @@ api:
               required: true
               description: 주문 번호 (사용자에게 보이는 주문 번호)
             - name: orderId
-              type: string
+              type: number
               required: true
               description: 주문 ID (시스템 고유 식별자)
             - name: totalAmount
@@ -233,7 +233,7 @@ api:
       request:
         fields:
           - name: orderId
-            type: string
+            type: number
             required: true
             description: 주문 ID (서버에서 주문 정보 조회)
           - name: totalAmount
