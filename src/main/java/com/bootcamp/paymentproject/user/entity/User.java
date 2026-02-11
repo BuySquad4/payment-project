@@ -1,39 +1,39 @@
-package com.bootcamp.paymentproject.user.entity;
+    package com.bootcamp.paymentproject.user.entity;
 
-import com.bootcamp.paymentproject.common.entity.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+    import com.bootcamp.paymentproject.common.entity.BaseEntity;
+    import jakarta.persistence.*;
+    import lombok.*;
+    import org.springframework.data.annotation.CreatedDate;
+    import org.springframework.data.annotation.LastModifiedDate;
+    import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+    import java.math.BigDecimal;
+    import java.time.LocalDateTime;
 
-@Entity
-@Setter
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-@AllArgsConstructor
-@Table(name = "users")
-public class User extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Entity
+    @Setter
+    @Getter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @Builder
+    @AllArgsConstructor
+    @Table(name = "users")
+    public class User extends BaseEntity {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String username;
+        @Column(nullable = false, unique = true, length = 50)
+        private String username;
 
-    @Column(nullable = false)
-    private String password;
+        @Column(nullable = false)
+        private String password;
 
-    @Column(nullable = false)
-    private String phone;
+        @Column(nullable = false)
+        private String phone;
 
-    @Column(nullable = false)
-    private String email;
+        @Column(nullable = false)
+        private String email;
 
-    @Column(name = "point_balance")
-    private BigDecimal pointBalance;
-}
+        @Column(name = "point_balance")
+        private BigDecimal pointBalance;
+    }
