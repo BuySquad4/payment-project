@@ -16,6 +16,7 @@ import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -47,6 +49,7 @@ public class PaymentService {
 
     @Transactional
     public ConfirmPaymentResponse confirmPaymentTransaction(String paymentId, PortOnePaymentResponse portOnePayment) {
+        log.info(paymentId);
         Payment dbPayment = paymentRepository.findByPaymentId(paymentId).orElseThrow(
                 PaymentNotFoundException::new
         );

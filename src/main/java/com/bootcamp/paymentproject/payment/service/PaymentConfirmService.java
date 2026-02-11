@@ -4,8 +4,10 @@ import com.bootcamp.paymentproject.payment.dto.response.ConfirmPaymentResponse;
 import com.bootcamp.paymentproject.portone.PortOneClient;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentConfirmService {
@@ -14,8 +16,9 @@ public class PaymentConfirmService {
 
     // 외부 api 호출을 transaction 에서 분리
     public ConfirmPaymentResponse confirmPayment(String paymentId) {
-
+        log.info(paymentId);
         PortOnePaymentResponse payment = portOneClient.getPayment(paymentId);
+        log.info(paymentId);
         ConfirmPaymentResponse confirmPaymentResponse = paymentService.confirmPaymentTransaction(paymentId, payment);
 
         // 결제금액 상이/재고 문제 발생시
