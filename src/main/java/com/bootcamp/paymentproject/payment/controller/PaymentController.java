@@ -2,10 +2,13 @@ package com.bootcamp.paymentproject.payment.controller;
 
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.payment.dto.request.CreatePaymentRequest;
+import com.bootcamp.paymentproject.payment.dto.request.RefundPaymentRequest;
 import com.bootcamp.paymentproject.payment.dto.response.ConfirmPaymentResponse;
 import com.bootcamp.paymentproject.payment.dto.response.CreatePaymentResponse;
+import com.bootcamp.paymentproject.payment.dto.response.RefundPaymentResponse;
 import com.bootcamp.paymentproject.payment.service.PaymentConfirmService;
 import com.bootcamp.paymentproject.payment.service.PaymentService;
+import com.bootcamp.paymentproject.refund.service.PaymentRefundService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
     private final PaymentService paymentService;
     private final PaymentConfirmService paymentConfirmService;
+    private final PaymentRefundService paymentRefundService;
 
     @PostMapping
     public ResponseEntity<SuccessResponse<CreatePaymentResponse>> createPayment(@RequestBody CreatePaymentRequest request){
@@ -28,5 +32,13 @@ public class PaymentController {
     public ResponseEntity<SuccessResponse<ConfirmPaymentResponse>> confirmPayment(@PathVariable String paymentId){
         ConfirmPaymentResponse response = paymentConfirmService.confirmPayment(paymentId);
         return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success(response, response.getMessage()));
+    }
+
+    @PostMapping("/{paymentId}/refund")
+    public ResponseEntity<SuccessResponse<RefundPaymentResponse>> RefundPayment(
+            @PathVariable String paymentId,
+            @RequestBody RefundPaymentRequest request){
+        RefundPaymentResponse response = paymentRefundService.refundPayment(paymentId, request.getReason(), null);
+        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success(response, "결제 취소 요청에 성공했습니다."));
     }
 }

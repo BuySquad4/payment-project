@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
-    PAYMENT_NOT_FOUND("PAYMENT_NOT_FOUND", "존재하지 않는 결제 정보 입니다.", HttpStatus.NOT_FOUND),
+    // Payment
+    PAYMENT_NOT_FOUND("PAYMENT_NOT_FOUND", "존재하지 않는 결제 정보입니다.", HttpStatus.NOT_FOUND),
 
     // PortOne (TODO 2)
     PORTONE_UNAUTHORIZED("PORTONE_UNAUTHORIZED", "PortOne 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
@@ -15,6 +16,9 @@ public enum ErrorCode {
     PORTONE_API_ERROR("PORTONE_API_ERROR", "PortOne API 호출 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
     PORTONE_RESPONSE_NULL("PORTONE_RESPONSE_NULL", "PortOne 응답이 비어있습니다.", HttpStatus.BAD_GATEWAY),
 
+    // Refund
+    PAYMENT_NOT_REFUNDABLE("PAYMENT_NOT_REFUNDABLE", "환불 가능한 결제 상태가 아닙니다.", HttpStatus.CONFLICT),
+    REFUND_NOT_FOUND("REFUND_NOT_FOUND", "존재하지 않는 환불 정보입니다.", HttpStatus.NOT_FOUND);
     PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다.", HttpStatus.NOT_FOUND),
 
     INVALID_PAYMENT_STATUS_TRANSITION("INVALID_PAYMENT_STATUS_TRANSITION", "유효하지 않은 결제 상태 전이입니다.", HttpStatus.BAD_REQUEST);

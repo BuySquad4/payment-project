@@ -15,3 +15,4 @@ public interface OrderProductRepository extends JpaRepository<OrderProduct,Long>
             "WHERE op.order.id = :orderId")
     List<OrderProductQuantityDto> findByOrderId(@Param("orderId") Long orderId);
 }
+

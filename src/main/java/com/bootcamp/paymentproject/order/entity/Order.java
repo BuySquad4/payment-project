@@ -55,12 +55,15 @@ public class Order extends BaseEntity {
                 .multiply(BigDecimal.valueOf(orderproduct.getStock())));
     }
 
+    public void orderCompleted() {this.status = OrderStatus.COMPLETED;}
     public void orderCompleted() { this.status = OrderStatus.COMPLETED; }
     public void orderRefunded() { this.status = OrderStatus.REFUNDED; }
 
     public void orderPendingRefund(){
         this.status = OrderStatus.REFUND_PENDING;
     }
+    public void orderRefunded(){this.status = OrderStatus.REFUNDED;}
+    public void orderRefundFailed(){this.status = OrderStatus.REFUND_FAILED;}
 }
 
 // id           : 주문 ID(뭔 상품인지)

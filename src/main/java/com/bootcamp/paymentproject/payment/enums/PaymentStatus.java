@@ -7,7 +7,9 @@ public enum PaymentStatus {
     PENDING,
     APPROVED,
     FAILED,
-    CANCELED;
+    CANCELED,
+    REFUND_FAILED,
+    REFUNDED;
 
     public boolean canTransitToTargetStatus(PaymentStatus targetStatus){
         if(targetStatus == null){
@@ -16,8 +18,9 @@ public enum PaymentStatus {
 
         return switch (this){
             case PENDING -> targetStatus == APPROVED || targetStatus == FAILED || targetStatus == CANCELED;
-            case APPROVED -> targetStatus == CANCELED;
-            case FAILED, CANCELED -> false;
+            case APPROVED, REFUND_FAILED -> targetStatus == CANCELED;
+            case CANCELED -> targetStatus == REFUNDED || targetStatus == REFUND_FAILED;
+            case FAILED, REFUNDED -> false;
         };
 
     }
