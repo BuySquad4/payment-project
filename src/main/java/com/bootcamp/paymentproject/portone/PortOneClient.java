@@ -1,25 +1,29 @@
 package com.bootcamp.paymentproject.portone;
 
+import com.bootcamp.paymentproject.common.config.PortOneProperties;
 import com.bootcamp.paymentproject.portone.exception.PortOneApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
+@RequiredArgsConstructor
 public class PortOneClient {
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
-
-    public PortOneClient(RestClient portOneRestClient, ObjectMapper objectMapper) {
-        this.restClient = portOneRestClient;
-        this.objectMapper = objectMapper;
-    }
+    private final PortOneProperties portOneProperties;
 
     public PortOnePaymentResponse getPayment(String paymentId) {
         return restClient.get()
-                .uri("/payments/{paymentId}", paymentId)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/payments/{paymentId}")
+                        .queryParam("storeId",portOneProperties.getStore().getId())
+                        .build(paymentId)
+                )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (req, res) -> {
                     PortOneError error = parseErrorResponse(res);
