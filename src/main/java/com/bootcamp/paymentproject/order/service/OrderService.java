@@ -39,7 +39,7 @@ public class OrderService {
             if (product.getStock() < item.getQuantity())
                 throw new RuntimeException("재고 부족");
 
-            OrderProduct op = new OrderProduct(product, (long) item.getQuantity(), order);
+            OrderProduct op = new OrderProduct(product, (Long) item.getQuantity(), order);
             order.OrderProductAdd(op);
         }
 

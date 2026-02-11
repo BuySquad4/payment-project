@@ -16,9 +16,9 @@ public class PaymentConfirmService {
 
     // 외부 api 호출을 transaction 에서 분리
     public ConfirmPaymentResponse confirmPayment(String paymentId) {
-        log.info(paymentId);
+
         PortOnePaymentResponse payment = portOneClient.getPayment(paymentId);
-        log.info(paymentId);
+
         ConfirmPaymentResponse confirmPaymentResponse = paymentService.confirmPaymentTransaction(paymentId, payment);
 
         // 결제금액 상이/재고 문제 발생시
