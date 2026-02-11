@@ -27,7 +27,7 @@ public class WebhookController {
     /**
      * PortOne webhook 수신 API
      */
-    @PostMapping(value = "/portone-webhook")
+    @PostMapping(value = "/portone-webhook", consumes = "application/json")
     public ResponseEntity<SuccessResponse<Void>> handlePortoneWebhook(
 
             // 1. 검증용 원문
