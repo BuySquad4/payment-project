@@ -57,6 +57,10 @@ public class Order extends BaseEntity {
 
     public void orderCompleted() { this.status = OrderStatus.COMPLETED; }
     public void orderRefunded() { this.status = OrderStatus.REFUNDED; }
+
+    public void orderPendingRefund(){
+        this.status = OrderStatus.REFUND_PENDING;
+    }
 }
 
 // id           : 주문 ID(뭔 상품인지)
