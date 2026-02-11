@@ -4,7 +4,6 @@ import com.bootcamp.paymentproject.common.config.PortOneProperties;
 import com.bootcamp.paymentproject.portone.exception.PortOneApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
