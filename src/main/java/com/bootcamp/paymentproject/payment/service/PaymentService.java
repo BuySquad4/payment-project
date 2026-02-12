@@ -10,7 +10,10 @@ import com.bootcamp.paymentproject.payment.dto.response.CreatePaymentResponse;
 import com.bootcamp.paymentproject.payment.entity.Payment;
 import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import com.bootcamp.paymentproject.payment.exception.PaymentNotFoundException;
+import com.bootcamp.paymentproject.payment.exception.PointInsufficientException;
 import com.bootcamp.paymentproject.payment.repository.PaymentRepository;
+import com.bootcamp.paymentproject.point.enums.PointType;
+import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
@@ -19,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +36,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
     private final ProductRepository productRepository;
+    private final PointTransactionRepository pointTransactionRepository;
 
     @Transactional
     public CreatePaymentResponse createPayment(CreatePaymentRequest request) {
@@ -39,9 +44,19 @@ public class PaymentService {
                 () -> new IllegalStateException("해당 주문을 찾지 못했습니다.")
         );
 
+        BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
+
+        if(request.getPointsToUse().compareTo(remainingPoint) > 0) {
+            throw new PointInsufficientException();
+        }
+
         String paymentId = "payment-" + order.getId() + "-" +LocalDateTime.now();
-        Payment payment = new Payment(paymentId, order.getTotalPrice(), order);
+
+        // 총 결제금액은 상품 가격의 총 합 - 사용할 포인트로 계산
+        Payment payment = new Payment(paymentId, request.getTotalAmount().subtract(request.getPointsToUse()), order);
         paymentRepository.save(payment);
+
+        order.updatePointToUse(request.getPointsToUse());
 
         return CreatePaymentResponse.fromEntity(payment);
     }

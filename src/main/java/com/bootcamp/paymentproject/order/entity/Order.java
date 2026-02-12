@@ -2,6 +2,7 @@ package com.bootcamp.paymentproject.order.entity;
 
 import com.bootcamp.paymentproject.common.entity.BaseEntity;
 import com.bootcamp.paymentproject.order.enums.OrderStatus;
+import com.bootcamp.paymentproject.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,6 +27,9 @@ public class Order extends BaseEntity {
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
+    @Column(name = "point_to_use")
+    private BigDecimal pointToUse;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
@@ -35,6 +39,11 @@ public class Order extends BaseEntity {
     // 주문1 : 상품N, 주문이 주인, 주문 저장 시 상품 저장, 주문에서 제거 시 주문상품도 제거)
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderProduct> orderProducts = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
 
     // 생성자 오류 해결
     public static Order create() {
@@ -55,8 +64,13 @@ public class Order extends BaseEntity {
                 .multiply(BigDecimal.valueOf(orderproduct.getStock())));
     }
 
-    public void orderCompleted() {this.status = OrderStatus.COMPLETED;}
+    public void updatePointToUse(BigDecimal pointToUse) {
+        if (pointToUse.compareTo(BigDecimal.ZERO) >= 0) {
+            this.pointToUse = pointToUse;
+        }
+    }
 
+    public void orderCompleted() {this.status = OrderStatus.COMPLETED;}
     public void orderPendingRefund(){
         this.status = OrderStatus.REFUND_PENDING;
     }

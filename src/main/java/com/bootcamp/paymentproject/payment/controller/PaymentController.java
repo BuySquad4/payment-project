@@ -25,6 +25,7 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<SuccessResponse<CreatePaymentResponse>> createPayment(@RequestBody CreatePaymentRequest request){
+        request.checkPointsToUseNull();
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success(paymentService.createPayment(request), "결제 생성에 성공했습니다."));
     }
 
