@@ -7,6 +7,9 @@ import com.bootcamp.paymentproject.membership.exception.MembershipErrorCode;
 import com.bootcamp.paymentproject.membership.exception.MembershipException;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
+import com.bootcamp.paymentproject.point.entity.PointTransaction;
+import com.bootcamp.paymentproject.point.enums.PointType;
+import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
 import com.bootcamp.paymentproject.user.dto.response.GetCurrentUserResponse;
 import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,8 @@ public class AuthService {
     private final UserMembershipRepository userMembershipRepository;
 
     private final MembershipRepository membershipRepository;
+
+    private final PointTransactionRepository pointTransactionRepository;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
@@ -63,12 +69,14 @@ public class AuthService {
         return SignUpResponse.fromEntity(user);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public GetCurrentUserResponse getCurrentUser(String email) {
 
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("일치하는 유저가 없습니다.")
+                () -> new UserException(UserErrorCode.NOT_FOUND_USER)
         );
+
+        user.setPointBalance(pointTransactionRepository.getPointSumByUserId(user.getId(), PointType.EARN));
 
         return GetCurrentUserResponse.fromEntity(user);
     }
