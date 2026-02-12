@@ -27,21 +27,29 @@ public class PortOneClientImpl implements PortOneClient {
     @Value("${portone.api.secret:}")
     private String apiSecret;
 
+    /**
+     * PortOne 결제 조회 API 호출
+     *
+     * 흐름:
+     * 1) paymentId로 PortOne 결제 조회 API 요청
+     * 2) Authorization 헤더에 Secret Key 포함
+     * 3) 응답을 PortOnePaymentResponse로 변환하여 반환
+     */
     @Override
     public PortOnePaymentResponse getPayment(String paymentId) {
 
-        // 결제 조회 API URL 생성
+        // 1. 결제 조회 API URL 생성
         String url = baseUrl + "/payments/" + paymentId +
                 "?storeId=" + portOneProperties.getStore().getId();
 
-        // Authorization 헤더 설정 (PortOne 전용 방식)
+        // 2. Authorization 헤더 설정 (PortOne 전용 방식)
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "PortOne " + apiSecret);
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         try {
-            // PortOne 결제 조회 요청 (SSOT)
+            // 3. PortOne API 호출 (결제 정보 조회)
             ResponseEntity<PortOnePaymentResponse> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
@@ -49,21 +57,20 @@ public class PortOneClientImpl implements PortOneClient {
                     PortOnePaymentResponse.class
             );
 
-            // 응답 body 추출 및 null 체크
             PortOnePaymentResponse body = response.getBody();
+
             if (body == null) {
-                // 응답이 비어있는 경우 → 시스템 예외로 변환
                 throw new ServiceException(ErrorCode.PORTONE_RESPONSE_NULL);
             }
 
             return body;
 
         } catch (HttpClientErrorException.Unauthorized e) {
-            // 401 Unauthorized → 인증 실패
+            // 401 Unauthorized → 인증 실패(Secret Key 오류)
             throw new ServiceException(ErrorCode.PORTONE_UNAUTHORIZED, e);
 
         } catch (HttpClientErrorException.NotFound e) {
-            // 404 Not Found → 해당 paymentId 없음
+            // 404 Not Found → 해당 paymentId 없음(결제 정보 없음)
             throw new ServiceException(ErrorCode.PORTONE_PAYMENT_NOT_FOUND, e);
 
         } catch (HttpClientErrorException e) {
@@ -71,7 +78,7 @@ public class PortOneClientImpl implements PortOneClient {
             throw new ServiceException(ErrorCode.PORTONE_API_ERROR, e);
 
         } catch (Exception e) {
-            // 네트워크 오류, JSON 파싱 오류 등 예상 못한 예외
+            // 네트워크 오류 또는 기타 예외
             throw new ServiceException(ErrorCode.PORTONE_API_ERROR, e);
         }
     }
