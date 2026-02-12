@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.order.service;
 
+import com.bootcamp.paymentproject.common.security.CustomUserDetails;
 import com.bootcamp.paymentproject.order.Repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
 import com.bootcamp.paymentproject.order.dto.OrderCreateResponse;
@@ -8,8 +9,11 @@ import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.order.entity.OrderProduct;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
+import com.bootcamp.paymentproject.user.entity.User;
+import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication; // user 누적 포인트 용도
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +27,24 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+
 
     // 주문 생성
     @Transactional
     public OrderCreateResponse createOrder(
-            OrderCreateRequest request
+            OrderCreateRequest request,
+            Authentication authentication
     ) {
+        // user 확인용
+        CustomUserDetails principal =
+                (CustomUserDetails) authentication.getPrincipal();
+        User user = userRepository.findByEmail(principal.getEmail())
+                .orElseThrow(() -> new RuntimeException("유저 없음")
+        );
+
         Order order = Order.create();
+        order.setUser(user); // 포인트 확인용 user
 
         // 요청 시 재고 확인
         for (OrderCreateRequest.Item item : request.getItems()) {
@@ -81,12 +96,37 @@ public class OrderService {
     }
 
     private OrderGetResponse toResponse(Order order) {
+
+        BigDecimal usedPoint;
+
+        // 사용할 포인트 검사
+        if (order.getPointToUse() == null) {
+            usedPoint = BigDecimal.ZERO;
+        } else {
+            usedPoint = order.getPointToUse();
+        }
+
+        // 적립 포인트 초기화
+        BigDecimal earnedPoint = BigDecimal.ZERO;
+
+        // 포인트를 사용하지 않은 경우에만 적립 계산
+        if (usedPoint.compareTo(BigDecimal.ZERO) == 0) {
+
+            User user = order.getUser();
+
+            // 멤버십 적립 계산 NORMAL 1%, VIP 5%, half-VVIP 7%, VVIP 10%
+            // 유저 테이블에서 ID로 멤버십 테이블의 등급에 따른 퍼센트를 가져온다고 설정
+            BigDecimal rate = getMembershipRate(order.getUser());
+            earnedPoint = order.getTotalPrice().multiply(rate);
+
+         }
+
         return new OrderGetResponse(
                 order.getOrderNumber(),
                 order.getId(),
-                order.getTotalPrice(),
-                order.getTotalPrice(), // 포인트 미사용
-                order.getTotalPrice(), // 적립 10%
+                order.getTotalPrice(),  // 주문 총 가격
+                usedPoint,              // 사용 포인트
+                earnedPoint,            // 등급별 적립 포인트
                 "KRW",
                 order.getStatus().name(),
                 order.getCreatedAt()
