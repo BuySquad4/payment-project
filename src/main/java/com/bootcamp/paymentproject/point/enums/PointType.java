@@ -7,5 +7,6 @@ public enum PointType {
     SPENT,
     EARN,
     CANCEL,
+    HOLDING,
     EXPIRE
 }
