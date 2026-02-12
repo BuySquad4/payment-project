@@ -1,6 +1,7 @@
 package com.bootcamp.paymentproject.order.service;
 
 import com.bootcamp.paymentproject.common.security.CustomUserDetails;
+import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
 import com.bootcamp.paymentproject.order.Repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
 import com.bootcamp.paymentproject.order.dto.OrderCreateResponse;
@@ -28,18 +29,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
-
+    private final UserMembershipRepository userMembershipRepository;
 
     // 주문 생성
     @Transactional
     public OrderCreateResponse createOrder(
             OrderCreateRequest request,
-            Authentication authentication
+            String email
     ) {
-        // user 확인용
-        CustomUserDetails principal =
-                (CustomUserDetails) authentication.getPrincipal();
-        User user = userRepository.findByEmail(principal.getEmail())
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("유저 없음")
         );
 
@@ -54,7 +53,7 @@ public class OrderService {
             if (product.getStock() < item.getQuantity())
                 throw new RuntimeException("재고 부족");
 
-            OrderProduct op = new OrderProduct(product, (Long) item.getQuantity(), order);
+            OrderProduct op = new OrderProduct(product, (Long)item.getQuantity(), order);
             order.OrderProductAdd(op);
         }
 
@@ -131,5 +130,12 @@ public class OrderService {
                 order.getStatus().name(),
                 order.getCreatedAt()
         );
+    }
+
+    private BigDecimal getMembershipRate(User user) {
+
+        return userMembershipRepository.findByUserId(user.getId())
+                .map(userMembership -> userMembership.getMembership().getEarnRate())
+                .orElse(BigDecimal.ZERO);  // 멤버십 없으면 0%
     }
 }
