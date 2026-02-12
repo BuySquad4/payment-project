@@ -15,9 +15,8 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     @Query("SELECT COALESCE(sum(p.remainingPoints), 0) FROM PointTransaction p WHERE p.user.id = :userId AND p.type = :type")
     BigDecimal getPointSumByUserId(@Param("userId") Long userId, @Param("type") PointType type);
 
-    // earnAt 대신 createdAt(생성일) 기준으로 적립 대기 건 조회
-    List<PointTransaction> findAllByTypeAndCreatedAtBefore(PointType type, LocalDateTime dateTime);
-
     // ExpireAt -> ExpiredAt (엔티티 필드명과 일치)
     List<PointTransaction> findAllByTypeAndExpiredAtBefore(PointType type, LocalDateTime dateTime);
+
+    List<PointTransaction> findAllByTypeSwitchToTypeEarnAtBefore(PointType pointType, LocalDateTime now);
 }
