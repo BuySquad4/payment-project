@@ -1,5 +1,7 @@
 package com.bootcamp.paymentproject.payment.service;
 
+import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
+import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
 import com.bootcamp.paymentproject.order.Repository.OrderProductRepository;
 import com.bootcamp.paymentproject.order.Repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderProductQuantityDto;
@@ -12,11 +14,13 @@ import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import com.bootcamp.paymentproject.payment.exception.PaymentNotFoundException;
 import com.bootcamp.paymentproject.payment.exception.PointInsufficientException;
 import com.bootcamp.paymentproject.payment.repository.PaymentRepository;
+import com.bootcamp.paymentproject.point.entity.PointTransaction;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
+import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,7 @@ public class PaymentService {
     private final OrderProductRepository orderProductRepository;
     private final ProductRepository productRepository;
     private final PointTransactionRepository pointTransactionRepository;
+    private final UserMembershipRepository userMembershipRepository;
 
     @Transactional
     public CreatePaymentResponse createPayment(CreatePaymentRequest request) {
@@ -122,6 +127,33 @@ public class PaymentService {
 
         Order order = dbPayment.getOrder();
         order.orderCompleted();
+
+        // 포인트 미 사용시
+        // 유저를 통해 멤버십 적립률 값을 가져와서 적립 금액 계산
+        // 적립 포인트 정보를 pointTransaction 테이블에 저장
+        if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
+//            userMembershipRepository.findEarnRateByUserId(order.getUser().getId())
+        }
+
+
+        // 포인트를 사용한 경우
+        // pointTransaction 에서 만료일 기준 내림차순 정렬해서 데이터 가져와서 남은 잔액 값뺴고
+        // 뺀 내용을 pointspendHistory에 저장
+        // 사용 포인트 정보를 pointTransaction 테이블에 저장
+
+
+
+        if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
+            PointTransaction spentPointTx = new PointTransaction(order.getPointToUse(), PointType.SPENT, order.getUser(), order);
+            pointTransactionRepository.save(spentPointTx);
+        }
+
+        PointTransaction holdingPointTx = new PointTransaction(order.getPointToUse(), PointType.HOLDING, order.getUser(), order);
+
+        //멤버십 등급 업데이트
+
+
+        //사용자 포인트 잔액 필드 업데이트
 
         return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
     }
