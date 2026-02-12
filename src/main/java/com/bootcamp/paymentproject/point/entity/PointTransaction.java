@@ -26,6 +26,9 @@ public class PointTransaction extends BaseEntity {
     @Column(nullable = false)
     private BigDecimal points;
 
+    @Column(nullable = false, name = "remaining_points")
+    private BigDecimal remainingPoints;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PointType type;
