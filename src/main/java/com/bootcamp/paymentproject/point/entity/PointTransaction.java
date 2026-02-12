@@ -42,4 +42,24 @@ public class PointTransaction extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
+
+    private static PointTransaction of(User user,  Order order,  PointType type,  BigDecimal points, BigDecimal remainingPoints, LocalDateTime expiredAt) {
+        PointTransaction tx = new PointTransaction();
+        tx.user = user;
+        tx.order = order;
+        tx.type = type;
+        tx.points = points;
+        tx.remainingPoints = remainingPoints;
+        tx.expiredAt = expiredAt;
+        return tx;
+    }
+
+    public static PointTransaction spend(User user, Order order, BigDecimal amountToSpend) {
+        BigDecimal negative = amountToSpend.abs().negate();
+        return of(user, order, PointType.SPENT, negative, BigDecimal.ZERO, null);
+    }
+
+    public static PointTransaction cancel(User user, Order order, BigDecimal deltaPoints) {
+        return of(user, order, PointType.CANCEL, deltaPoints, BigDecimal.ZERO, null);
+    }
 }

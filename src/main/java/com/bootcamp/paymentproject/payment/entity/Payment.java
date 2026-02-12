@@ -91,4 +91,16 @@ public class Payment extends BaseEntity {
     public boolean isRefundable(LocalDateTime now) {
         return refundableUntil != null && !now.isAfter(refundableUntil);
     }
+
+    /** 결제 승인 처리: APPROVED + paidAt + refundableUntil(2주) 세팅 */
+    public void approve(LocalDateTime approvedAt) {
+        paymentConfirmed();                 // status -> APPROVED
+        this.paidAt = approvedAt;           // 승인 시각 기록
+        this.refundableUntil = approvedAt.plusDays(14); // 환불 가능 마감(2주)
+    }
+
+    public void refund(LocalDateTime refundedAt) {
+        paymentRefunded();          // status -> REFUNDED
+        this.refundedAt = refundedAt;
+    }
 }

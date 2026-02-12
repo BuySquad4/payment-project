@@ -118,7 +118,7 @@ public class PaymentService {
             }
         }
 
-        dbPayment.paymentConfirmed();
+        dbPayment.approve(LocalDateTime.now());
 
         Order order = dbPayment.getOrder();
         order.orderCompleted();

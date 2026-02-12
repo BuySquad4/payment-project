@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment,Long> {
 
+    Optional<Payment> findByOrderId(Long orderId);
+
     // 해당 조회 발생 시 다른 confirm 요청은 해당 row 수정 불가
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Payment p WHERE p.paymentId = :paymentId")

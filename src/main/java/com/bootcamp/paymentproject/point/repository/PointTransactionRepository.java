@@ -7,9 +7,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 
 public interface PointTransactionRepository extends JpaRepository<PointTransaction, Long> {
 
     @Query("SELECT COALESCE(sum(p.remainingPoints), 0) FROM PointTransaction p WHERE p.user.id = :userId AND p.type = :type")
     BigDecimal getPointSumByUserId(@Param("userId") Long userId, @Param("type") PointType type);
+
+    /**
+     * 환불 시: 해당 주문의 사용(SPENT) 트랜잭션 찾기
+     */
+    Optional<PointTransaction> findFirstByUserIdAndOrderIdAndType(Long userId, Long orderId, PointType type);
+
+    /**
+     * 환불 시: 해당 주문의 적립(EARN/HOLDING) 트랜잭션들 찾기
+     */
+    List<PointTransaction> findAllByUserIdAndOrderIdAndTypeIn(Long userId, Long orderId, List<PointType> types);
 }
