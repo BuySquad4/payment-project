@@ -1,5 +1,8 @@
 package com.bootcamp.paymentproject.common.initializer;
 
+import com.bootcamp.paymentproject.membership.entity.Membership;
+import com.bootcamp.paymentproject.membership.enums.MembershipGrade;
+import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.enums.ProductStatus;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
@@ -14,6 +17,8 @@ import java.math.BigDecimal;
 public class DataInitializer implements CommandLineRunner {
 
     private final ProductRepository productRepository;
+
+    private final MembershipRepository membershipRepository;
 
     @Override
     public void run(String... args) {
@@ -51,6 +56,40 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
 
             System.out.println("✅ [성공] 상품 초기 데이터 3종이 빌더 패턴으로 생성되었습니다.");
+        }
+
+        if (membershipRepository.count() == 0) {
+            membershipRepository.save(
+                    Membership.builder()
+                            .earnRate(new BigDecimal("0.01"))
+                            .gradeName(MembershipGrade.NORMAL)
+                            .minTotalPaidAmount(new BigDecimal("0"))
+                            .build()
+            );
+
+            membershipRepository.save(
+                    Membership.builder()
+                            .earnRate(new BigDecimal("0.05"))
+                            .gradeName(MembershipGrade.VIP)
+                            .minTotalPaidAmount(new BigDecimal("50000"))
+                            .build()
+            );
+
+            membershipRepository.save(
+                    Membership.builder()
+                            .earnRate(new BigDecimal("0.07"))
+                            .gradeName(MembershipGrade.HALF_VVIP)
+                            .minTotalPaidAmount(new BigDecimal("100000"))
+                            .build()
+            );
+
+            membershipRepository.save(
+                    Membership.builder()
+                            .earnRate(new BigDecimal("0.1"))
+                            .gradeName(MembershipGrade.VVIP)
+                            .minTotalPaidAmount(new BigDecimal("150000"))
+                            .build()
+            );
         }
     }
 }

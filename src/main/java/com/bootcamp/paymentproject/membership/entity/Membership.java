@@ -1,15 +1,16 @@
 package com.bootcamp.paymentproject.membership.entity;
 
 import com.bootcamp.paymentproject.common.entity.BaseEntity;
+import com.bootcamp.paymentproject.membership.enums.MembershipGrade;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Getter
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "memberships")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Membership extends BaseEntity {
@@ -20,8 +21,9 @@ public class Membership extends BaseEntity {
     @Column(nullable = false)
     private BigDecimal earnRate;
     @Column(nullable = false, unique = true)
-    private String gradeName;
+    @Enumerated(EnumType.STRING)
+    private MembershipGrade gradeName;
 
     @Column(name = "min_total_paid_amount", nullable = false)
-    private BigDecimal MinTotalPaidAmount;
+    private BigDecimal minTotalPaidAmount;
 }
