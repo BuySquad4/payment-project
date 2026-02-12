@@ -34,6 +34,13 @@ public class Payment extends BaseEntity {
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
+    /**
+     * 환불 가능 마감 시각 (결제 승인 시각 + 2주)
+     * - now.isAfter(refundableUntil) 이면 환불 불가
+     */
+    @Column(name = "refundable_until")
+    private LocalDateTime refundableUntil;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
@@ -73,5 +80,15 @@ public class Payment extends BaseEntity {
         if(this.status.canTransitToTargetStatus(PaymentStatus.REFUND_FAILED)) {
             this.status = PaymentStatus.REFUND_FAILED;
         }
+    }
+
+    /** 결제 승인 시점에 환불가능일을 세팅 (2주) */
+    public void setRefundableUntil(LocalDateTime approvedAt, int days) {
+        this.refundableUntil = approvedAt.plusDays(days);
+    }
+
+    /** 현재 시각 기준 환불 가능 여부 */
+    public boolean isRefundable(LocalDateTime now) {
+        return refundableUntil != null && !now.isAfter(refundableUntil);
     }
 }
