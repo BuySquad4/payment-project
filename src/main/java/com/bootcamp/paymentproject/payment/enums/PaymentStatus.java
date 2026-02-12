@@ -17,11 +17,11 @@ public enum PaymentStatus {
         }
 
         return switch (this){
-            case PENDING -> targetStatus == APPROVED || targetStatus == FAILED || targetStatus == CANCELED;
-            case APPROVED, REFUND_FAILED -> targetStatus == CANCELED;
-            case CANCELED -> targetStatus == REFUNDED || targetStatus == REFUND_FAILED;
+            case PENDING -> targetStatus == APPROVED || targetStatus == FAILED || targetStatus == CANCELED || targetStatus == REFUNDED;
+            case APPROVED -> targetStatus == REFUNDED || targetStatus == CANCELED;
+            case REFUND_FAILED -> targetStatus == CANCELED || targetStatus == REFUNDED;
+            case CANCELED -> targetStatus == REFUNDED || targetStatus == REFUND_FAILED || targetStatus == CANCELED;
             case FAILED, REFUNDED -> false;
         };
-
     }
 }
