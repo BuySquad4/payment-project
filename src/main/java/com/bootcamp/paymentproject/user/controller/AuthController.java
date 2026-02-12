@@ -1,12 +1,11 @@
 package com.bootcamp.paymentproject.user.controller;
 
-import com.bootcamp.paymentproject.common.dto.CustomUserDetails;
+import com.bootcamp.paymentproject.common.security.CustomUserDetails;
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
 import com.bootcamp.paymentproject.user.dto.response.GetCurrentUserResponse;
 import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
 import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
-import com.bootcamp.paymentproject.user.entity.User;
 import com.bootcamp.paymentproject.user.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 인증 관련 API 컨트롤러

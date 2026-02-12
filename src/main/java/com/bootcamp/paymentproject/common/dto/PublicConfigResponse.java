@@ -1,6 +1,6 @@
 package com.bootcamp.paymentproject.common.dto;
 
-import com.bootcamp.paymentproject.common.config.ClientApiProperties;
+import com.bootcamp.paymentproject.common.properties.ClientApiProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

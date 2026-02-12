@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.common.config;
+package com.bootcamp.paymentproject.common.initializer;
 
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.enums.ProductStatus;

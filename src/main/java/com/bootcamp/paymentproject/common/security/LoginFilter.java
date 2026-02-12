@@ -1,6 +1,5 @@
 package com.bootcamp.paymentproject.common.security;
 
-import com.bootcamp.paymentproject.common.dto.CustomUserDetails;
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.user.dto.request.LoginRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;

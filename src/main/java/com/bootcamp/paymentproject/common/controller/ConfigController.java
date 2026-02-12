@@ -1,8 +1,8 @@
 package com.bootcamp.paymentproject.common.controller;
 
-import com.bootcamp.paymentproject.common.config.AppProperties;
-import com.bootcamp.paymentproject.common.config.ClientApiProperties;
-import com.bootcamp.paymentproject.common.config.PortOneProperties;
+import com.bootcamp.paymentproject.common.properties.AppProperties;
+import com.bootcamp.paymentproject.common.properties.ClientApiProperties;
+import com.bootcamp.paymentproject.common.properties.PortOneProperties;
 import com.bootcamp.paymentproject.common.dto.PublicConfigResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
