@@ -76,60 +76,25 @@ public class OrderService {
     // 주문 상세 조회
     @Transactional(readOnly = true)
     public OrderGetResponse getOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문 없음")
-        );
 
-        return new OrderGetResponse(
-                order.getOrderNumber(),
-                order.getId(),
-                order.getTotalPrice(),
-                order.getTotalPrice(),
-                BigDecimal.ZERO,
-                "KRW",
-                order.getStatus().name(),
-                order.getOrderedAt()
-        );
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("주문 없음"));
+
+        BigDecimal earnRate = userMembershipRepository
+                .findEarnRateByUserId(order.getUser().getId())
+                .orElse(BigDecimal.ZERO);
+
+        return new OrderGetResponse(order, earnRate);
     }
 
     private OrderGetResponse toResponse(Order order) {
 
-        BigDecimal usedPoint;
+        BigDecimal earnRate = userMembershipRepository
+                .findEarnRateByUserId(order.getUser().getId())
+                .orElse(BigDecimal.ZERO);
 
-        // 사용할 포인트 검사
-        if (order.getPointToUse() == null) {
-            usedPoint = BigDecimal.ZERO;
-        } else {
-            usedPoint = order.getPointToUse();
-        }
-
-        // 적립 포인트 초기화
-        BigDecimal earnedPoint = BigDecimal.ZERO;
-
-        // 포인트를 사용하지 않은 경우에만 적립 계산
-        if (usedPoint.compareTo(BigDecimal.ZERO) == 0) {
-
-            User user = order.getUser();
-
-            // 멤버십 적립 계산 NORMAL 1%, VIP 5%, HALF_VVIP 7%, VVIP 10%
-            // 유저 테이블에서 ID로 멤버십 테이블의 등급에 따른 퍼센트를 가져온다고 설정
-            BigDecimal rate = getMembershipRate(user);
-            earnedPoint = order.getTotalPrice().multiply(rate);
-
-         }
-
-        return new OrderGetResponse(
-                order.getOrderNumber(),
-                order.getId(),
-                order.getTotalPrice(),  // 주문 총 가격
-                usedPoint,              // 사용 포인트
-                earnedPoint,            // 등급별 적립 포인트
-                "KRW",
-                order.getStatus().name(),
-                order.getCreatedAt()
-        );
+        return new OrderGetResponse(order, earnRate);
     }
-
     private BigDecimal getMembershipRate(User user) {
         return userMembershipRepository.findEarnRateByUserId(user.getId())
                 .orElse(BigDecimal.ZERO);  // 멤버십 없으면 0%
