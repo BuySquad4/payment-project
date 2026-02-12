@@ -1,6 +1,6 @@
 package com.bootcamp.paymentproject.portone;
 
-import com.bootcamp.paymentproject.common.config.PortOneProperties;
+import com.bootcamp.paymentproject.common.properties.PortOneProperties;
 import com.bootcamp.paymentproject.portone.exception.PortOneApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

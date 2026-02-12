@@ -1,6 +1,6 @@
 package com.bootcamp.paymentproject.refund.service;
 
-import com.bootcamp.paymentproject.common.config.PortOneProperties;
+import com.bootcamp.paymentproject.common.properties.PortOneProperties;
 import com.bootcamp.paymentproject.payment.dto.response.RefundPaymentResponse;
 import com.bootcamp.paymentproject.portone.PortOneCancelRequest;
 import com.bootcamp.paymentproject.portone.PortOneClient;

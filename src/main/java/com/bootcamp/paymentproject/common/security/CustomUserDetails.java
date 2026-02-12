@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.common.dto;
+package com.bootcamp.paymentproject.common.security;
 
 import com.bootcamp.paymentproject.user.entity.User;
 import lombok.RequiredArgsConstructor;

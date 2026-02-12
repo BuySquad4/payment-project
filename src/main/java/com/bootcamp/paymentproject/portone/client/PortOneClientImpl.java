@@ -1,6 +1,6 @@
 package com.bootcamp.paymentproject.portone.client;
 
-import com.bootcamp.paymentproject.common.config.PortOneProperties;
+import com.bootcamp.paymentproject.common.properties.PortOneProperties;
 import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.common.exception.ServiceException;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
