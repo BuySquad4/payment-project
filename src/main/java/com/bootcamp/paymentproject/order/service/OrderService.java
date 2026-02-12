@@ -1,6 +1,5 @@
 package com.bootcamp.paymentproject.order.service;
 
-import com.bootcamp.paymentproject.common.security.CustomUserDetails;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
 import com.bootcamp.paymentproject.order.Repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
@@ -14,7 +13,6 @@ import com.bootcamp.paymentproject.user.entity.User;
 import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication; // user 누적 포인트 용도
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,9 +111,9 @@ public class OrderService {
 
             User user = order.getUser();
 
-            // 멤버십 적립 계산 NORMAL 1%, VIP 5%, half-VVIP 7%, VVIP 10%
+            // 멤버십 적립 계산 NORMAL 1%, VIP 5%, HALF_VVIP 7%, VVIP 10%
             // 유저 테이블에서 ID로 멤버십 테이블의 등급에 따른 퍼센트를 가져온다고 설정
-            BigDecimal rate = getMembershipRate(order.getUser());
+            BigDecimal rate = getMembershipRate(user);
             earnedPoint = order.getTotalPrice().multiply(rate);
 
          }
@@ -133,9 +131,7 @@ public class OrderService {
     }
 
     private BigDecimal getMembershipRate(User user) {
-
-        return userMembershipRepository.findByUserId(user.getId())
-                .map(userMembership -> userMembership.getMembership().getEarnRate())
+        return userMembershipRepository.findEarnRateByUserId(user.getId())
                 .orElse(BigDecimal.ZERO);  // 멤버십 없으면 0%
     }
 }
