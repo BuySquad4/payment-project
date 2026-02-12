@@ -1,19 +1,27 @@
 package com.bootcamp.paymentproject.point.scheduler;
 
-import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
+import com.bootcamp.paymentproject.point.service.PointService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-@Service
+@Slf4j
+@Component
 @RequiredArgsConstructor
 public class PointScheduler {
-    private final PointTransactionRepository pointTransactionRepository;
+
+    private final PointService pointService;
 
     @Scheduled(cron = "0 0 0 * * *")
-    @Transactional
-    public void expirePoints(){
-
+    public void processPointBatch() {
+        log.info("=== [포인트 배치] 작업 시작 ===");
+        try {
+            pointService.processPendingPoints();
+            pointService.expirePoints();
+            log.info("=== [포인트 배치] 작업 성공 ===");
+        } catch (Exception e) {
+            log.error("!!! [포인트 배치] 작업 실패: {} !!!", e.getMessage());
+        }
     }
 }

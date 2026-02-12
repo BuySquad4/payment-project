@@ -5,9 +5,7 @@ import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import com.bootcamp.paymentproject.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +13,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "pointTransactions")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointTransaction extends BaseEntity {
@@ -32,8 +32,11 @@ public class PointTransaction extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PointType type;
+
     @Column(name = "expired_at")
     private LocalDateTime expiredAt;
+    @Column(name = "switch_to_type_earn_at")
+    private LocalDateTime switchToTypeEarnAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -42,6 +45,22 @@ public class PointTransaction extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
+
+    public void updateType(PointType type) {
+        this.type = type;
+    }
+
+    public PointTransaction(BigDecimal points, PointType type, User user, Order order) {
+        this.points = points;
+        this.type = type;
+        this.user = user;
+        this.order = order;
+        if(type == PointType.HOLDING){
+            this.remainingPoints = points;
+            this.expiredAt = LocalDateTime.now().plusWeeks(4);
+            this.switchToTypeEarnAt = LocalDateTime.now().plusWeeks(2);
+        }
+    }
 
     private static PointTransaction of(User user,  Order order,  PointType type,  BigDecimal points, BigDecimal remainingPoints, LocalDateTime expiredAt) {
         PointTransaction tx = new PointTransaction();
