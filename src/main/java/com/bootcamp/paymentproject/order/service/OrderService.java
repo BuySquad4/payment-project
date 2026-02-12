@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.order.service;
 
+import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
 import com.bootcamp.paymentproject.order.Repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
 import com.bootcamp.paymentproject.order.dto.OrderCreateResponse;
@@ -8,6 +9,8 @@ import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.order.entity.OrderProduct;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
+import com.bootcamp.paymentproject.user.entity.User;
+import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,13 +26,22 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final UserMembershipRepository userMembershipRepository;
 
     // 주문 생성
     @Transactional
     public OrderCreateResponse createOrder(
-            OrderCreateRequest request
+            OrderCreateRequest request,
+            String email
     ) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("유저 없음")
+        );
+
         Order order = Order.create();
+        order.setUser(user); // 포인트 확인용 user
 
         // 요청 시 재고 확인
         for (OrderCreateRequest.Item item : request.getItems()) {
@@ -39,7 +51,7 @@ public class OrderService {
             if (product.getStock() < item.getQuantity())
                 throw new RuntimeException("재고 부족");
 
-            OrderProduct op = new OrderProduct(product, (Long) item.getQuantity(), order);
+            OrderProduct op = new OrderProduct(product, (Long)item.getQuantity(), order);
             order.OrderProductAdd(op);
         }
 
@@ -64,32 +76,27 @@ public class OrderService {
     // 주문 상세 조회
     @Transactional(readOnly = true)
     public OrderGetResponse getOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문 없음")
-        );
 
-        return new OrderGetResponse(
-                order.getOrderNumber(),
-                order.getId(),
-                order.getTotalPrice(),
-                order.getTotalPrice(),
-                BigDecimal.ZERO,
-                "KRW",
-                order.getStatus().name(),
-                order.getOrderedAt()
-        );
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("주문 없음"));
+
+        BigDecimal earnRate = userMembershipRepository
+                .findEarnRateByUserId(order.getUser().getId())
+                .orElse(BigDecimal.ZERO);
+
+        return new OrderGetResponse(order, earnRate);
     }
 
     private OrderGetResponse toResponse(Order order) {
-        return new OrderGetResponse(
-                order.getOrderNumber(),
-                order.getId(),
-                order.getTotalPrice(),
-                order.getTotalPrice(), // 포인트 미사용
-                order.getTotalPrice(), // 적립 10%
-                "KRW",
-                order.getStatus().name(),
-                order.getCreatedAt()
-        );
+
+        BigDecimal earnRate = userMembershipRepository
+                .findEarnRateByUserId(order.getUser().getId())
+                .orElse(BigDecimal.ZERO);
+
+        return new OrderGetResponse(order, earnRate);
+    }
+    private BigDecimal getMembershipRate(User user) {
+        return userMembershipRepository.findEarnRateByUserId(user.getId())
+                .orElse(BigDecimal.ZERO);  // 멤버십 없으면 0%
     }
 }
