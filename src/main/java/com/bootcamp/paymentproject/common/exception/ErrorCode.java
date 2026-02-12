@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // Payment
     PAYMENT_NOT_FOUND("PAYMENT_NOT_FOUND", "존재하지 않는 결제 정보입니다.", HttpStatus.NOT_FOUND),
+    POINT_INSUFFICIENT("POINT_INSUFFICIENT", "포인트 잔액이 부족합니다.", HttpStatus.BAD_REQUEST),
 
     // PortOne (TODO 2)
     PORTONE_UNAUTHORIZED("PORTONE_UNAUTHORIZED", "PortOne 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
