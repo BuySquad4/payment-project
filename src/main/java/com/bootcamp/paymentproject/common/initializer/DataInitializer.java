@@ -1,29 +1,62 @@
 package com.bootcamp.paymentproject.common.initializer;
 
 import com.bootcamp.paymentproject.membership.entity.Membership;
+import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.membership.enums.MembershipGrade;
+import com.bootcamp.paymentproject.membership.exception.MembershipErrorCode;
+import com.bootcamp.paymentproject.membership.exception.MembershipException;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
+import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
+import com.bootcamp.paymentproject.order.Repository.OrderRepository;
+import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
+import com.bootcamp.paymentproject.order.entity.Order;
+import com.bootcamp.paymentproject.order.entity.OrderProduct;
+import com.bootcamp.paymentproject.point.entity.PointTransaction;
+import com.bootcamp.paymentproject.point.enums.PointType;
+import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.enums.ProductStatus;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
+import com.bootcamp.paymentproject.user.entity.User;
+import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
     private final ProductRepository productRepository;
-
     private final MembershipRepository membershipRepository;
+    private final UserRepository userRepository;
+    private final UserMembershipRepository userMembershipRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final OrderRepository orderRepository;
+    private final PointTransactionRepository pointTransactionRepository;
 
     @Override
     public void run(String... args) {
+
+        // 관리자 계정 생성
+        User admin = User.builder()
+                .username("testname")
+                .email("admin@test.com")
+                .password(passwordEncoder.encode("admin"))
+                .phone("010-1234-5678")
+                .build();
+
+        userRepository.save(admin);
+
         // 데이터가 없을 때만 실행
         if (productRepository.count() == 0) {
+
+
+
 
             // 1번 상품
             productRepository.save(Product.builder()
@@ -71,7 +104,7 @@ public class DataInitializer implements CommandLineRunner {
                     Membership.builder()
                             .earnRate(new BigDecimal("0.05"))
                             .gradeName(MembershipGrade.VIP)
-                            .minTotalPaidAmount(new BigDecimal("50000"))
+                            .minTotalPaidAmount(new BigDecimal("1000"))
                             .build()
             );
 
@@ -79,7 +112,7 @@ public class DataInitializer implements CommandLineRunner {
                     Membership.builder()
                             .earnRate(new BigDecimal("0.07"))
                             .gradeName(MembershipGrade.HALF_VVIP)
-                            .minTotalPaidAmount(new BigDecimal("100000"))
+                            .minTotalPaidAmount(new BigDecimal("2000"))
                             .build()
             );
 
@@ -87,9 +120,65 @@ public class DataInitializer implements CommandLineRunner {
                     Membership.builder()
                             .earnRate(new BigDecimal("0.1"))
                             .gradeName(MembershipGrade.VVIP)
-                            .minTotalPaidAmount(new BigDecimal("150000"))
+                            .minTotalPaidAmount(new BigDecimal("3000"))
                             .build()
             );
+
+            // 관리자 멤버십 정보 추가
+            Membership membership = membershipRepository.findByGradeName(MembershipGrade.NORMAL)
+                    .orElseThrow(
+                            () -> new MembershipException(MembershipErrorCode.NOT_FOUND_GRADE)
+                    );
+
+            UserMembership userMembership = UserMembership.builder()
+                    .totalAmount(new BigDecimal("0"))
+                    .user(admin)
+                    .membership(membership)
+                    .build();
+
+            userMembershipRepository.save(userMembership);
+
         }
+
+        // 주문 정보 생성
+        Order order = Order.create();
+        order.setUser(admin);
+
+        OrderCreateRequest.Item item1 = new OrderCreateRequest.Item("1", 2L);
+        OrderCreateRequest.Item item2 = new OrderCreateRequest.Item("2", 1L);
+
+        List<OrderCreateRequest.Item> items = List.of(item1, item2);
+
+        for (OrderCreateRequest.Item item : items) {
+            Product product = productRepository.findById(Long.valueOf(item.getProductId()))
+                    .orElseThrow(() -> new RuntimeException("상품 없음"));
+
+            if (product.getStock() < item.getQuantity())
+                throw new RuntimeException("재고 부족");
+
+            OrderProduct op = new OrderProduct(product, (Long)item.getQuantity(), order);
+            order.OrderProductAdd(op);
+        }
+
+        orderRepository.save(order);
+
+
+        PointTransaction tx1 = new PointTransaction(
+                BigDecimal.valueOf(800L),
+                PointType.HOLDING,
+                order
+        );
+
+        PointTransaction tx2 = new PointTransaction(
+                BigDecimal.valueOf(400L),
+                PointType.HOLDING,
+                order
+        );
+
+        tx1.updateType(PointType.EARN);
+        tx2.updateType(PointType.EARN);
+        pointTransactionRepository.save(tx1);
+        pointTransactionRepository.save(tx2);
+
     }
 }

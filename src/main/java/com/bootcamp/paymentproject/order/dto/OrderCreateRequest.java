@@ -1,6 +1,7 @@
 package com.bootcamp.paymentproject.order.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
@@ -11,6 +12,7 @@ public class OrderCreateRequest {
     private List<Item> items;
 
     @Getter
+    @AllArgsConstructor
     public static class Item {
         private String productId;
         private Long quantity;
