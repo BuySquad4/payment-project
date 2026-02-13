@@ -1,13 +1,16 @@
 package com.bootcamp.paymentproject.order.Controller;
 
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
+import com.bootcamp.paymentproject.common.security.CustomUserDetails;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
 import com.bootcamp.paymentproject.order.dto.OrderCreateResponse;
 import com.bootcamp.paymentproject.order.dto.OrderGetResponse;
 import com.bootcamp.paymentproject.order.service.OrderService;
+import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,15 +21,23 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final UserRepository userRepository;
+
 
     // 주문 생성
     @PostMapping
     public ResponseEntity<SuccessResponse<OrderCreateResponse>> createOrder(
-            @RequestBody OrderCreateRequest request
+            @RequestBody OrderCreateRequest request,
+            Authentication authentication
     ) {
+        CustomUserDetails principal =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        String email = principal.getEmail();
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(SuccessResponse.success(
-                        orderService.createOrder(request),
+                        orderService.createOrder(request, email),
                         "주문 생성 완료"
                 ));
     }
