@@ -55,6 +55,9 @@ public class PointTransaction extends BaseEntity {
         this.type = type;
         this.user = user;
         this.order = order;
+
+        this.remainingPoints = BigDecimal.ZERO;
+
         if(type == PointType.HOLDING){
             this.remainingPoints = points;
             this.expiredAt = LocalDateTime.now().plusWeeks(4);
