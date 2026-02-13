@@ -80,23 +80,18 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문 없음"));
 
-        BigDecimal earnRate = userMembershipRepository
-                .findEarnRateByUserId(order.getUser().getId())
-                .orElse(BigDecimal.ZERO);
+        BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(order.getUser().getId()).orElse(BigDecimal.ZERO);
 
         return new OrderGetResponse(order, earnRate);
     }
 
     private OrderGetResponse toResponse(Order order) {
 
-        BigDecimal earnRate = userMembershipRepository
-                .findEarnRateByUserId(order.getUser().getId())
-                .orElse(BigDecimal.ZERO);
+        BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(order.getUser().getId()).orElse(BigDecimal.ZERO);
 
         return new OrderGetResponse(order, earnRate);
     }
     private BigDecimal getMembershipRate(User user) {
-        return userMembershipRepository.findEarnRateByUserId(user.getId())
-                .orElse(BigDecimal.ZERO);  // 멤버십 없으면 0%
+        return userMembershipRepository.findEarnRateByUserId(user.getId()).orElse(BigDecimal.ZERO);
     }
 }
