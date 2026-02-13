@@ -21,13 +21,11 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
 
     List<PointTransaction> findAllByTypeSwitchToTypeEarnAtBefore(PointType pointType, LocalDateTime now);
 
-    /**
-     * 환불 시: 해당 주문의 사용(SPENT) 트랜잭션 찾기
-     */
-    Optional<PointTransaction> findFirstByUserIdAndOrderIdAndType(Long userId, Long orderId, PointType type);
+    Optional<PointTransaction> findFirstByUser_IdAndOrder_IdAndType(
+            Long userId, Long orderId, PointType type
+    );
 
-    /**
-     * 환불 시: 해당 주문의 적립(EARN/HOLDING) 트랜잭션들 찾기
-     */
-    List<PointTransaction> findAllByUserIdAndOrderIdAndTypeIn(Long userId, Long orderId, List<PointType> types);
+    List<PointTransaction> findAllByUser_IdAndOrder_IdAndTypeIn(
+            Long userId, Long orderId, List<PointType> types
+    );
 }

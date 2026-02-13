@@ -156,7 +156,7 @@ public class RefundService {
 
             // 1. 사용 포인트 복구 (SPENT -> CANCEL)
             pointTransactionRepository
-                    .findFirstByUserIdAndOrderIdAndType(userId, orderId, PointType.SPENT)
+                    .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.SPENT)
                     .ifPresent(spentTx -> {
 
                         BigDecimal restoreAmount = spentTx.getPoints().abs();
@@ -171,7 +171,7 @@ public class RefundService {
 
             // 2. 적립 포인트 취소 (EARN/HOLDING -> CANCEL)
             List<PointTransaction> earnList =
-                    pointTransactionRepository.findAllByUserIdAndOrderIdAndTypeIn(
+                    pointTransactionRepository.findAllByUser_IdAndOrder_IdAndTypeIn(
                             userId,
                             orderId,
                             List.of(PointType.EARN, PointType.HOLDING)
