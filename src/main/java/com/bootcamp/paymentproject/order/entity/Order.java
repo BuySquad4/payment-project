@@ -44,6 +44,7 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public void setUser(User user) { this.user = user; }
 
     // 생성자 오류 해결
     public static Order create() {

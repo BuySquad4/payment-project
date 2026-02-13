@@ -19,7 +19,7 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     // ExpireAt -> ExpiredAt (엔티티 필드명과 일치)
     List<PointTransaction> findAllByTypeAndExpiredAtBefore(PointType type, LocalDateTime dateTime);
 
-    List<PointTransaction> findAllByTypeSwitchToTypeEarnAtBefore(PointType pointType, LocalDateTime now);
+    List<PointTransaction> findAllByTypeAndSwitchToTypeEarnAtBefore(PointType pointType, LocalDateTime now);
 
     Optional<PointTransaction> findFirstByUser_IdAndOrder_IdAndType(
             Long userId, Long orderId, PointType type

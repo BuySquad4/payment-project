@@ -22,7 +22,7 @@ public class PointService {
     public void processPendingPoints() {
         // 엔티티에 earnAt이 없으므로 createdAt 기준으로 처리
         List<PointTransaction> holdings = pointTransactionRepository
-                .findAllByTypeSwitchToTypeEarnAtBefore(PointType.HOLDING, LocalDateTime.now());
+                .findAllByTypeAndSwitchToTypeEarnAtBefore(PointType.HOLDING, LocalDateTime.now());
 
         for (PointTransaction tx : holdings) {
             tx.updateType(PointType.EARN);
