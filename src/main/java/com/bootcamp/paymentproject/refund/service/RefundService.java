@@ -34,52 +34,6 @@ public class RefundService {
     private final PortOneClient portOneClient;
     private final PointTransactionRepository pointTransactionRepository;
 
-    /**
-     * 환불 "완료 처리" 흐름
-     * 1) 주문(orderId)로 결제 조회
-     * 2) 본인 주문/환불 가능 기간 체크
-     * 3) PortOne 결제 상태 조회
-     * 4) 환불 요청 생성(멱등) + DB 상태를 "환불 대기"로 변경
-     * 5) 다시 PortOne 조회 후 환불 완료면 DB 반영 + 포인트 처리
-     */
-    @Transactional
-    public RefundPaymentResponse refund(Long userId, Long orderId, String reason) {
-
-        Payment payment = paymentRepository.findByOrderId(orderId)
-                .orElseThrow(PaymentNotFoundException::new);
-
-        // 본인 주문인지 확인
-        if (!payment.getOrder().getUser().getId().equals(userId)) {
-            throw new PaymentNotRefundableException();
-        }
-
-        // 환불 가능 기간 체크
-        if (!payment.isRefundable(LocalDateTime.now())) {
-            throw new PaymentNotRefundableException();
-        }
-
-        // PortOne 결제 상태 조회
-        PortOnePaymentResponse portOnePaymentResponse = portOneClient.getPayment(payment.getPaymentId());
-
-        // 환불 요청 생성(멱등)
-        boolean requested = checkPaymentRefundable(
-                payment.getPaymentId(),
-                "사용자 환불 요청",
-                portOnePaymentResponse
-        );
-
-        // 이미 REQUESTED/COMPLETED면 추가 처리 없이 반환
-        if (!requested) {
-            return RefundPaymentResponse.fromEntity(payment);
-        }
-
-        // 다시 PortOne 상태 조회 (환불 완료 여부 확인)
-        PortOnePaymentResponse latest = portOneClient.getPayment(payment.getPaymentId());
-
-        // 환불 결과 반영 + 포인트 처리
-        return refundPaymentTransaction(payment.getPaymentId(), latest);
-    }
-
     @Transactional
     public boolean checkPaymentRefundable(String paymentId, String reason, PortOnePaymentResponse portOnePaymentResponse) {
 
