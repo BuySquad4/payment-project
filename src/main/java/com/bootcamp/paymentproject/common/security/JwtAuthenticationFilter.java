@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,12 +24,17 @@ import java.io.IOException;
  * - 역할(Role) 정보를 토큰에서 추출
  * - 예외 처리 개선
  */
-@Component
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getServletPath().equals("/api/auth/login");
+    }
 
     @Override
     protected void doFilterInternal(
@@ -42,14 +48,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = getJwtFromRequest(request);
 
             // 2-1. 토큰 유효성 검증
-            if (token == null || !jwtTokenProvider.validateToken(token)) {
+            if (token == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
+            if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                return;
+            }
+
             // 2-2. 토큰 만료 검증
-            if (jwtTokenProvider.isExpired(token)){
-                filterChain.doFilter(request, response);
+            if (!jwtTokenProvider.validateToken(token) || jwtTokenProvider.isExpired(token)){
                 return;
             }
 
@@ -75,7 +84,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendError(HttpServletResponse response, int status, String message) throws IOException {

@@ -15,6 +15,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
+
 import static org.springframework.boot.security.autoconfigure.web.servlet.PathRequest.toStaticResources;
 
 /**
@@ -89,6 +91,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                     // 4) 인증 API
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
+                    //.requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
 
                     // PortOne Webhook (외부에서 들어오는 요청이라 인증 없이 허용)
                     .requestMatchers(HttpMethod.POST, "/portone-webhook").permitAll()
@@ -100,12 +103,29 @@ public class SecurityConfig {
                     .anyRequest().authenticated()
             );
 
+        http.exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, e) -> {
+                    System.out.println("[401] " + req.getMethod() + " " + req.getRequestURI());
+                    e.printStackTrace();
+                    res.sendError(401);
+                })
+                .accessDeniedHandler((req, res, e) -> {
+                    System.out.println("[403] " + req.getMethod() + " " + req.getRequestURI());
+                    e.printStackTrace();
+                    res.sendError(403);
+                })
+        );
+
         // JWT 필터 추가
-        http
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService), LoginFilter.class);
+        http.addFilterBefore(
+                new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         http
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // http.addFilterAfter(loginFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

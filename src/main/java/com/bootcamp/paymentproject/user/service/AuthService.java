@@ -1,20 +1,18 @@
 package com.bootcamp.paymentproject.user.service;
 
+import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.membership.entity.Membership;
 import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.membership.enums.MembershipGrade;
-import com.bootcamp.paymentproject.membership.exception.MembershipErrorCode;
 import com.bootcamp.paymentproject.membership.exception.MembershipException;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
-import com.bootcamp.paymentproject.point.entity.PointTransaction;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
 import com.bootcamp.paymentproject.user.dto.response.GetCurrentUserResponse;
 import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
 import com.bootcamp.paymentproject.user.entity.User;
-import com.bootcamp.paymentproject.user.exception.UserErrorCode;
 import com.bootcamp.paymentproject.user.exception.UserException;
 import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +38,7 @@ public class AuthService {
     @Transactional
     public SignUpResponse signup(SignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new UserException(UserErrorCode.Duplicate_Email);
+            throw new UserException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         User user = User.builder()
@@ -51,11 +48,11 @@ public class AuthService {
                 .email(request.getEmail())
                 .build();
 
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
 
         Membership membership = membershipRepository.findByGradeName(MembershipGrade.NORMAL)
                 .orElseThrow(
-                        () -> new MembershipException(MembershipErrorCode.NOT_FOUND_GRADE)
+                        () -> new MembershipException(ErrorCode.NOT_FOUND_GRADE)
                 );
 
         UserMembership userMembership = UserMembership.builder()
@@ -73,7 +70,7 @@ public class AuthService {
     public GetCurrentUserResponse getCurrentUser(String email) {
 
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new UserException(UserErrorCode.NOT_FOUND_USER)
+                () -> new UserException(ErrorCode.NOT_FOUND_USER)
         );
 
         user.setPointBalance(pointTransactionRepository.getPointSumByUserId(user.getId(), PointType.EARN));

@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -26,4 +28,7 @@ public class Membership extends BaseEntity {
 
     @Column(name = "min_total_paid_amount", nullable = false)
     private BigDecimal minTotalPaidAmount;
+
+    @OneToMany(mappedBy = "membership", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserMembership> userMemberships = new ArrayList<>();
 }
