@@ -30,7 +30,7 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
             "AND pt.expiredAt > CURRENT_TIMESTAMP " +
             "ORDER BY pt.expiredAt ASC, pt.id ASC")
     List<PointTransaction> findEarnTransactionsByUserID(@Param("userId") Long userId, @Param("type") PointType type);
-}
+
     // ExpireAt -> ExpiredAt (엔티티 필드명과 일치)
     List<PointTransaction> findAllByTypeAndExpiredAtBefore(PointType type, LocalDateTime dateTime);
 
