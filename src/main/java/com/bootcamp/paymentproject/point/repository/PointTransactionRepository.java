@@ -1,14 +1,17 @@
 package com.bootcamp.paymentproject.point.repository;
 
+import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.point.entity.PointTransaction;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import jakarta.persistence.LockModeType;
+import com.bootcamp.paymentproject.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PointTransactionRepository extends JpaRepository<PointTransaction, Long> {
@@ -27,4 +30,10 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
             "AND pt.expiredAt > CURRENT_TIMESTAMP " +
             "ORDER BY pt.expiredAt ASC, pt.id ASC")
     List<PointTransaction> findEarnTransactionsByUserID(@Param("userId") Long userId, @Param("type") PointType type);
+}
+    // ExpireAt -> ExpiredAt (엔티티 필드명과 일치)
+    List<PointTransaction> findAllByTypeAndExpiredAtBefore(PointType type, LocalDateTime dateTime);
+
+    // Type 뒤에 'And'를 붙여서 두 필드를 확실히 구분해줘야 합니다.
+    List<PointTransaction> findAllByTypeAndSwitchToTypeEarnAtBefore(PointType type, LocalDateTime dateTime);
 }

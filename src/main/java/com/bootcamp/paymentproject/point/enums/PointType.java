@@ -8,5 +8,5 @@ public enum PointType {
     EARN,
     CANCEL,
     HOLDING,
-    EXPIRE
+    EARNED, EXPIRE
 }

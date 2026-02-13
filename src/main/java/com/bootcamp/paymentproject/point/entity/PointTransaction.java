@@ -5,9 +5,7 @@ import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import com.bootcamp.paymentproject.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +13,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "pointTransactions")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointTransaction extends BaseEntity {
@@ -58,6 +58,10 @@ public class PointTransaction extends BaseEntity {
         }
     }
 
+    public void updateType(PointType type) {
+        this.type = type;
+    }  
+      
     public void updateRemainingPoints(BigDecimal remainingPoints) {
         if(remainingPoints.compareTo(BigDecimal.ZERO) >= 0 && remainingPoints.compareTo(points) <= 0){
             this.remainingPoints = remainingPoints;
