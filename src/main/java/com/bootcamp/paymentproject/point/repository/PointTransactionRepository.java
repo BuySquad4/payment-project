@@ -1,7 +1,9 @@
 package com.bootcamp.paymentproject.point.repository;
 
+import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.point.entity.PointTransaction;
 import com.bootcamp.paymentproject.point.enums.PointType;
+import com.bootcamp.paymentproject.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
