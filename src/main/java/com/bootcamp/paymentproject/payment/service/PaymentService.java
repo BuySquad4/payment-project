@@ -1,5 +1,7 @@
 package com.bootcamp.paymentproject.payment.service;
 
+import com.bootcamp.paymentproject.membership.entity.Membership;
+import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
 import com.bootcamp.paymentproject.order.Repository.OrderProductRepository;
@@ -14,8 +16,10 @@ import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import com.bootcamp.paymentproject.payment.exception.PaymentNotFoundException;
 import com.bootcamp.paymentproject.payment.exception.PointInsufficientException;
 import com.bootcamp.paymentproject.payment.repository.PaymentRepository;
+import com.bootcamp.paymentproject.point.entity.PointSpendHistory;
 import com.bootcamp.paymentproject.point.entity.PointTransaction;
 import com.bootcamp.paymentproject.point.enums.PointType;
+import com.bootcamp.paymentproject.point.repository.PointSpendHistoryRepository;
 import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
@@ -37,11 +41,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaymentService {
     private final PaymentRepository paymentRepository;
+
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
+
     private final ProductRepository productRepository;
-    private final PointTransactionRepository pointTransactionRepository;
     private final UserMembershipRepository userMembershipRepository;
+    private final MembershipRepository membershipRepository;
+
+    private final PointTransactionRepository pointTransactionRepository;
+    private final PointSpendHistoryRepository pointSpendHistoryRepository;
 
     @Transactional
     public CreatePaymentResponse createPayment(CreatePaymentRequest request) {
@@ -128,32 +137,58 @@ public class PaymentService {
         Order order = dbPayment.getOrder();
         order.orderCompleted();
 
+
         // 포인트 미 사용시
-        // 유저를 통해 멤버십 적립률 값을 가져와서 적립 금액 계산
-        // 적립 포인트 정보를 pointTransaction 테이블에 저장
         if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
-//            userMembershipRepository.findEarnRateByUserId(order.getUser().getId())
-        }
 
+            BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(order.getUser().getId());
+            BigDecimal earnAmount = dbPayment.getAmount().multiply(earnRate);
 
-        // 포인트를 사용한 경우
-        // pointTransaction 에서 만료일 기준 내림차순 정렬해서 데이터 가져와서 남은 잔액 값뺴고
-        // 뺀 내용을 pointspendHistory에 저장
-        // 사용 포인트 정보를 pointTransaction 테이블에 저장
+            PointTransaction holdingPointTx = new PointTransaction(earnAmount, PointType.HOLDING, order);
+            pointTransactionRepository.save(holdingPointTx);
 
+        } else { // 포인트 사용시 적립은 x
 
-
-        if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
-            PointTransaction spentPointTx = new PointTransaction(order.getPointToUse(), PointType.SPENT, order.getUser(), order);
+            PointTransaction spentPointTx = new PointTransaction(order.getPointToUse().negate(), PointType.SPENT, order);
             pointTransactionRepository.save(spentPointTx);
-        }
 
-        PointTransaction holdingPointTx = new PointTransaction(order.getPointToUse(), PointType.HOLDING, order.getUser(), order);
+            List<PointTransaction> earnTransactions = pointTransactionRepository.findEarnTransactionsByUserID(order.getUser().getId(), PointType.EARN);
+            BigDecimal pointToUse = order.getPointToUse();
+
+            for(PointTransaction pt : earnTransactions) {
+                if(pointToUse.compareTo(pt.getRemainingPoints()) > 0){
+                    PointSpendHistory pointSpendHistory = new PointSpendHistory(pt, spentPointTx, pt.getRemainingPoints());
+                    pointSpendHistoryRepository.save(pointSpendHistory);
+
+                    pointToUse = pointToUse.subtract(pt.getRemainingPoints());
+                    pt.updateRemainingPoints(BigDecimal.ZERO);
+                } else {
+                    PointSpendHistory pointSpendHistory = new PointSpendHistory(pt, spentPointTx, pointToUse);
+                    pointSpendHistoryRepository.save(pointSpendHistory);
+
+                    pt.updateRemainingPoints(pt.getRemainingPoints().subtract(pointToUse));
+                    break;
+                }
+            }
+        }
 
         //멤버십 등급 업데이트
+        BigDecimal totalUserPayAmount = paymentRepository.getTotalAmountByUserId(order.getUser().getId(), PaymentStatus.APPROVED);
+        UserMembership userMembership = userMembershipRepository.findByUser(order.getUser()).orElseThrow(
+                () -> new IllegalStateException("유저-멤버쉽 정보가 존재하지 않습니다.")
+        );
 
+        Membership haveToChangeMembership = membershipRepository.findTopByMinTotalPaidAmountLessThanEqualOrderByMinTotalPaidAmountDesc(totalUserPayAmount).orElseThrow(
+                () -> new IllegalStateException("일치하는 멤버쉽 정보가 존재하지 않습니다.")
+        );
+
+        userMembership.updateTotalAmount(totalUserPayAmount);
+        userMembership.updateMembership(haveToChangeMembership);
 
         //사용자 포인트 잔액 필드 업데이트
+        BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
+        order.getUser().setPointBalance(remainingPoint);
+
 
         return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
     }
