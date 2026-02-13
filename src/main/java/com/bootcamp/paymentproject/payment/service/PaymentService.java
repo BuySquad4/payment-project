@@ -24,6 +24,7 @@ import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
+import com.bootcamp.paymentproject.user.entity.User;
 import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class PaymentService {
     private final ProductRepository productRepository;
     private final UserMembershipRepository userMembershipRepository;
     private final MembershipRepository membershipRepository;
+    private final UserRepository userRepository;
 
     private final PointTransactionRepository pointTransactionRepository;
     private final PointSpendHistoryRepository pointSpendHistoryRepository;
@@ -185,11 +187,18 @@ public class PaymentService {
         userMembership.updateTotalAmount(totalUserPayAmount);
         userMembership.updateMembership(haveToChangeMembership);
 
-        //사용자 포인트 잔액 필드 업데이트
+        // 주문에 연결된 사용자 조회
+        User user = order.getUser();
+
+        // 현재 사용자의 총 적립 포인트 합계를 DB에서 다시 계산
+        // (포인트 사용, 취소 등으로 변동된 실제 잔액을 정확히 반영하기 위함)
         BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
         order.getUser().setPointBalance(remainingPoint);
 
+        // 계산된 최신 포인트 잔액을 사용자 엔티티에 반영
+        userRepository.save(user);
 
+        // 변경된 사용자 포인트 잔액 DB 저장
         return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
     }
 }

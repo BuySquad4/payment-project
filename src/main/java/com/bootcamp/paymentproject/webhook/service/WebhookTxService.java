@@ -82,45 +82,55 @@ public class WebhookTxService {
             String paymentId = result.getPaymentId();
 
             Payment payment = paymentRepository.findByPaymentId(paymentId)
-                    .orElseThrow(() -> new ServiceException(ErrorCode.PORTONE_PAYMENT_NOT_FOUND));
+                    .orElse(null);
 
-            Order order = payment.getOrder();
-
-            // 3) 결제 금액 검증 (취소/환불은 제외)
-            String rawStatus = result.getStatus();
-            boolean isRefunded = "REFUNDED".equalsIgnoreCase(rawStatus);
-            boolean isCanceledLike = rawStatus != null &&
-                    ("CANCELED".equalsIgnoreCase(rawStatus) ||
-                            "CANCELLED".equalsIgnoreCase(rawStatus) ||
-                            isRefunded);
-
-            if (!isCanceledLike) {
-                BigDecimal portoneAmount = result.amount() != null ? result.amount().total() : null;
-                BigDecimal orderAmount = order.getTotalPrice();
-
-                if (portoneAmount == null || orderAmount == null || portoneAmount.compareTo(orderAmount) != 0) {
-
-                    log.error("[PORTONE_WEBHOOK] amount mismatch paymentId={}, portoneAmount={}, orderAmount={}", paymentId, portoneAmount, orderAmount);
-                    throw new ServiceException(ErrorCode.PORTONE_API_ERROR);
-                }
-            }
-
-            // 4) 상태 매핑 + 상태 전이 검증
-            PaymentStatus targetStatus = maptoPaymentStatus(result.getStatus());
-            PaymentStatus currentStatus = payment.getStatus();
-
-            // 이미 환불 완료 상태면 늦게 온 이벤트 무시 (멱등)
-            if (currentStatus == PaymentStatus.REFUNDED && targetStatus != PaymentStatus.REFUNDED) {
-
-                log.info("[PORTONE_WEBHOOK] ignore late/out-of-order event. paymentId={}, current={}, target={}, rawStatus={}", paymentId, currentStatus, targetStatus, result.getStatus());
+            if (payment == null) {
+                log.warn("[PORTONE_WEBHOOK] payment not found yet. paymentId={}, webhookId={}", paymentId, webhookId);
                 event.markProcessed();
                 webhookEventRepository.save(event);
                 return;
             }
 
-            // 상태 전이 검증
-            if (!payment.getStatus().canTransitToTargetStatus(targetStatus)) {
-                throw new ServiceException(ErrorCode.INVALID_PAYMENT_STATUS_TRANSITION);
+            Order order = payment.getOrder();
+
+            // 3) 결제 금액 검증 (취소/환불은 제외)
+            PaymentStatus targetStatus = maptoPaymentStatus(result.getStatus());
+            PaymentStatus currentStatus = payment.getStatus();
+
+            if (targetStatus == PaymentStatus.PENDING) {
+                log.info("[PORTONE_WEBHOOK] pending/ready event ignore. paymentId={}, current={}, rawStatus={}",
+                        paymentId, currentStatus, result.getStatus());
+                event.markProcessed();
+                webhookEventRepository.save(event);
+                return;
+            }
+
+            if (currentStatus == PaymentStatus.REFUNDED && targetStatus != PaymentStatus.REFUNDED) {
+                log.info("[PORTONE_WEBHOOK] ignore late/out-of-order event. paymentId={}, current={}, target={}, rawStatus={}",
+                        paymentId, currentStatus, targetStatus, result.getStatus());
+                event.markProcessed();
+                webhookEventRepository.save(event);
+                return;
+            }
+
+            if (!currentStatus.canTransitToTargetStatus(targetStatus)) {
+                log.info("[PORTONE_WEBHOOK] ignore non-forward transition. paymentId={}, current={}, target={}, rawStatus={}",
+                        paymentId, currentStatus, targetStatus, result.getStatus());
+                event.markProcessed();
+                webhookEventRepository.save(event);
+                return;
+            }
+
+            // 4) 결제 금액 검증은 "결제 완료(APPROVED)"에서만 수행
+            if (targetStatus == PaymentStatus.APPROVED) {
+                BigDecimal portoneAmount = result.amount() != null ? result.amount().total() : null;
+                BigDecimal expectedAmount = payment.getAmount(); // 결제 생성 시 저장된 "실결제 예정 금액"
+
+                if (portoneAmount == null || expectedAmount == null || portoneAmount.compareTo(expectedAmount) != 0) {
+                    log.error("[PORTONE_WEBHOOK] amount mismatch paymentId={}, portoneAmount={}, expectedAmount={}",
+                            paymentId, portoneAmount, expectedAmount);
+                    throw new ServiceException(ErrorCode.PORTONE_API_ERROR);
+                }
             }
 
             // 5) 상태별 처리
@@ -132,27 +142,35 @@ public class WebhookTxService {
                     payment.approve(LocalDateTime.now());
                     order.orderCompleted();
 
-                    Long userId = order.getUser().getId();
-                    Long orderId = order.getId();
+                    // 포인트는 "부가 처리": 실패해도 webhook 전체를 FAILED로 만들지 않게 분리
+                    try {
+                        Long userId = order.getUser().getId();
+                        Long orderId = order.getId();
 
-                    // 중복 방지: 동일 주문에 HOLDING/EARN 있으면 생성 스킵
-                    boolean hasHolding = pointTransactionRepository
-                            .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.HOLDING)
-                            .isPresent();
-                    boolean hasEarn = pointTransactionRepository
-                            .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.EARN)
-                            .isPresent();
+                        boolean hasHolding = pointTransactionRepository
+                                .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.HOLDING)
+                                .isPresent();
+                        boolean hasEarn = pointTransactionRepository
+                                .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.EARN)
+                                .isPresent();
 
-                    if (!hasHolding && !hasEarn) {
-                        BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(userId)
-                                .orElse(BigDecimal.ZERO);
+                        if (!hasHolding && !hasEarn) {
+                            BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(userId)
+                                    .orElse(BigDecimal.ZERO);
 
-                        BigDecimal earnAmount = payment.getAmount().multiply(earnRate);
+                            BigDecimal earnAmount = payment.getAmount().multiply(earnRate);
 
-                        pointTransactionRepository.save(new PointTransaction(earnAmount, PointType.HOLDING, order));
-                    } else {
-                        log.info("[POINT] skip holding creation. orderId={}, hasHolding={}, hasEarn={}",
-                                orderId, hasHolding, hasEarn);
+                            pointTransactionRepository.save(
+                                    new PointTransaction(earnAmount, PointType.HOLDING, order)
+                            );
+                        } else {
+                            log.info("[POINT] skip holding creation. orderId={}, hasHolding={}, hasEarn={}",
+                                    orderId, hasHolding, hasEarn);
+                        }
+                    } catch (Exception e) {
+                        // 포인트만 실패 처리(결제/주문 반영은 성공으로 간주)
+                        log.error("[POINT] approved point handling failed. paymentId={}, orderId={}",
+                                paymentId, order.getId(), e);
                     }
                 }
 
@@ -173,6 +191,7 @@ public class WebhookTxService {
                     Long userId = order.getUser().getId();
                     Long orderId = order.getId();
 
+                    // 1) 적립(HOLDING/EARN) 회수: remaining 0 마감
                     List<PointTransaction> earnLikeTxs =
                             pointTransactionRepository.findAllByUser_IdAndOrder_IdAndTypeIn(
                                     userId,
@@ -187,6 +206,9 @@ public class WebhookTxService {
                     }
 
                     log.info("[POINT] refund zero-out earn-like txs. orderId={}, count={}", orderId, earnLikeTxs.size());
+
+                    // 2) 사용 포인트 복구
+                    restoreSpentPointsOnRefund(order);
                 }
 
                 // 환불 실패
@@ -198,16 +220,19 @@ public class WebhookTxService {
 
             // 6) webhook_event 처리 완료
             event.markProcessed();
+            webhookEventRepository.save(event);
 
         } catch (ServiceException ex) {
 
             // 처리 실패 기록
             log.error("[PORTONE_WEBHOOK] processing failed webhookId={}, code={}", webhookId, ex.getErrorCode().getCode(), ex);
             event.markFailed();
+            webhookEventRepository.save(event);
 
         } catch (Exception ex) {
             log.error("[PORTONE_WEBHOOK] unexpected error webhookId={}", webhookId, ex);
             event.markFailed();
+            webhookEventRepository.save(event);
         }
     }
 
@@ -274,5 +299,35 @@ public class WebhookTxService {
 
             product.decreaseStock(e.getValue());
         }
+    }
+
+    private void restoreSpentPointsOnRefund(Order order) {
+        Long userId = order.getUser().getId();
+        Long orderId = order.getId();
+
+        BigDecimal used = order.getPointToUse(); // orders.point_to_use
+        if (used == null || used.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        // 멱등 처리 : 이미 CANCEL(복구) 트랜잭션이 있으면 중복 생성 방지
+        boolean hasCancel = pointTransactionRepository
+                .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.CANCEL)
+                .isPresent();
+
+        if (hasCancel) {
+            log.info("[POINT] already restored(spent) by CANCEL. orderId={}, amount={}", orderId, used);
+            return;
+        }
+
+        // CANCEL 트랜잭션 생성 (+used)
+        PointTransaction cancelTx = new PointTransaction(used, PointType.CANCEL, order);
+
+        // 중요 : 잔고가 remaining_points 기반이면 반드시 복구분만큼 remaining_points를 살려야 함
+        cancelTx.updateRemainingPoints(used);
+
+        pointTransactionRepository.save(cancelTx);
+
+        log.info("[POINT] restored spent points on refund. orderId={}, amount={}", orderId, used);
     }
 }

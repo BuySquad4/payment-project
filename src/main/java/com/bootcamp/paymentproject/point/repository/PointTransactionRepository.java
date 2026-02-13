@@ -51,4 +51,12 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     List<PointTransaction> findAllByUser_IdAndOrder_IdAndTypeIn(
             Long userId, Long orderId, List<PointType> types
     );
+
+    /**
+     * 특정 사용자 + 특정 주문 + 특정 타입 포인트 전체 조회
+     * SPENT 포인트 전체 이력 조회
+     */
+    List<PointTransaction> findAllByUser_IdAndOrder_IdAndType(
+            Long userId, Long orderId, PointType type
+    );
 }
