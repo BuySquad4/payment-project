@@ -141,7 +141,7 @@ public class PaymentService {
         // 포인트 미 사용시
         if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
 
-            BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(order.getUser().getId());
+            BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(order.getUser().getId()).orElse(BigDecimal.ZERO);
             BigDecimal earnAmount = dbPayment.getAmount().multiply(earnRate);
 
             PointTransaction holdingPointTx = new PointTransaction(earnAmount, PointType.HOLDING, order);
