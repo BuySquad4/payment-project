@@ -25,6 +25,7 @@ import java.io.IOException;
  * - 예외 처리 개선
  */
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

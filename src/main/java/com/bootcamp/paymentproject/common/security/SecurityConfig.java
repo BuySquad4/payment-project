@@ -1,6 +1,7 @@
 package com.bootcamp.paymentproject.common.security;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
@@ -27,6 +29,7 @@ import static org.springframework.boot.security.autoconfigure.web.servlet.PathRe
  * - 역할 기반 접근 제어 (ROLE_ADMIN, ROLE_USER)
  * - API 엔드포인트별 세밀한 권한 설정
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -35,6 +38,7 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 //    @Bean
 //    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -105,12 +109,12 @@ public class SecurityConfig {
 
         http.exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) -> {
-                    System.out.println("[401] " + req.getMethod() + " " + req.getRequestURI());
+                    log.info("[401] " + req.getMethod() + " " + req.getRequestURI());
                     e.printStackTrace();
                     res.sendError(401);
                 })
                 .accessDeniedHandler((req, res, e) -> {
-                    System.out.println("[403] " + req.getMethod() + " " + req.getRequestURI());
+                    log.info("[403] " + req.getMethod() + " " + req.getRequestURI());
                     e.printStackTrace();
                     res.sendError(403);
                 })
@@ -118,7 +122,7 @@ public class SecurityConfig {
 
         // JWT 필터 추가
         http.addFilterBefore(
-                new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
+                jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
         );
 
