@@ -31,4 +31,15 @@ public class UserMembership extends BaseEntity {
     @JoinColumn(name = "membership_id", nullable = false)
     private Membership membership;
 
+    public void updateTotalAmount(BigDecimal totalAmount) {
+        if (totalAmount.compareTo(BigDecimal.ZERO) >= 0) {
+            this.totalAmount = totalAmount;
+        }
+    }
+
+    public void updateMembership(Membership membership) {
+        if (membership != null) {
+            this.membership = membership;
+        }
+    }
 }

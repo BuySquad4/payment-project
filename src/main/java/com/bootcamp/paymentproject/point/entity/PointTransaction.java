@@ -46,14 +46,10 @@ public class PointTransaction extends BaseEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    public void updateType(PointType type) {
-        this.type = type;
-    }
-
-    public PointTransaction(BigDecimal points, PointType type, User user, Order order) {
+    public PointTransaction(BigDecimal points, PointType type, Order order) {
         this.points = points;
         this.type = type;
-        this.user = user;
+        this.user = order.getUser();
         this.order = order;
 
         this.remainingPoints = BigDecimal.ZERO;
@@ -63,6 +59,17 @@ public class PointTransaction extends BaseEntity {
             this.expiredAt = LocalDateTime.now().plusWeeks(4);
             this.switchToTypeEarnAt = LocalDateTime.now().plusWeeks(2);
         }
+    }
+
+    public void updateType(PointType type) {
+        this.type = type;
+    }
+
+    public void updateRemainingPoints(BigDecimal remainingPoints) {
+        if(remainingPoints.compareTo(BigDecimal.ZERO) >= 0 && remainingPoints.compareTo(points) <= 0){
+            this.remainingPoints = remainingPoints;
+        }
+
     }
 
     private static PointTransaction of(User user,  Order order,  PointType type,  BigDecimal points, BigDecimal remainingPoints, LocalDateTime expiredAt) {
