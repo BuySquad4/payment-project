@@ -1,5 +1,6 @@
 package com.bootcamp.paymentproject.refund.service;
 
+import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.payment.dto.response.RefundPaymentResponse;
 import com.bootcamp.paymentproject.payment.entity.Payment;
 import com.bootcamp.paymentproject.payment.exception.PaymentNotFoundException;
@@ -14,6 +15,7 @@ import com.bootcamp.paymentproject.refund.enums.RefundState;
 import com.bootcamp.paymentproject.refund.exception.PaymentNotRefundableException;
 import com.bootcamp.paymentproject.refund.exception.RefundNotFoundException;
 import com.bootcamp.paymentproject.refund.repository.RefundRepository;
+import com.bootcamp.paymentproject.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -29,55 +31,52 @@ public class RefundService {
 
     private final RefundRepository refundRepository;
     private final PaymentRepository paymentRepository;
-
     private final PortOneClient portOneClient;
-
     private final PointTransactionRepository pointTransactionRepository;
 
     /**
-     * 컨트롤러에서 호출: 환불 "완료 처리"
-     * - orderId로 결제 찾기
-     * - 환불가능기간 체크
-     * - PortOne 결제 상태 조회
-     * - 환불 요청 생성(멱등)
-     * - 다시 조회 후 환불 완료 반영 + 포인트 복구/취소
+     * 환불 "완료 처리" 흐름
+     * 1) 주문(orderId)로 결제 조회
+     * 2) 본인 주문/환불 가능 기간 체크
+     * 3) PortOne 결제 상태 조회
+     * 4) 환불 요청 생성(멱등) + DB 상태를 "환불 대기"로 변경
+     * 5) 다시 PortOne 조회 후 환불 완료면 DB 반영 + 포인트 처리
      */
     @Transactional
     public RefundPaymentResponse refund(Long userId, Long orderId, String reason) {
 
-        // 1) orderId로 Payment 찾기
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(PaymentNotFoundException::new);
 
-        // 2) 본인 주문인지 확인
+        // 본인 주문인지 확인
         if (!payment.getOrder().getUser().getId().equals(userId)) {
             throw new PaymentNotRefundableException();
         }
 
-        // 3) 환불 가능 기간 체크
+        // 환불 가능 기간 체크
         if (!payment.isRefundable(LocalDateTime.now())) {
             throw new PaymentNotRefundableException();
         }
 
-        // 4) PortOne 결제 상태 조회
+        // PortOne 결제 상태 조회
         PortOnePaymentResponse portOnePaymentResponse = portOneClient.getPayment(payment.getPaymentId());
 
-        // 5) 환불 요청 생성(멱등) + 상태 변경
+        // 환불 요청 생성(멱등)
         boolean requested = checkPaymentRefundable(
                 payment.getPaymentId(),
                 "사용자 환불 요청",
                 portOnePaymentResponse
         );
 
+        // 이미 REQUESTED/COMPLETED면 추가 처리 없이 반환
         if (!requested) {
-            // 이미 REQUESTED/COMPLETED 인 경우 여기서 종료
             return RefundPaymentResponse.fromEntity(payment);
         }
 
-        // 6) 다시 PortOne 상태 조회 (환불 완료 여부 확인)
+        // 다시 PortOne 상태 조회 (환불 완료 여부 확인)
         PortOnePaymentResponse latest = portOneClient.getPayment(payment.getPaymentId());
 
-        // 7) 환불 결과 반영 + 포인트 처리
+        // 환불 결과 반영 + 포인트 처리
         return refundPaymentTransaction(payment.getPaymentId(), latest);
     }
 
@@ -125,6 +124,9 @@ public class RefundService {
         return true;
     }
 
+    /**
+     * PortOne 최종 상태에 따라 환불 완료/실패를 DB에 반영 + 포인트 처리
+     */
     @Transactional
     public RefundPaymentResponse refundPaymentTransaction(String paymentId ,PortOnePaymentResponse portOnePaymentResponse) {
 
@@ -151,41 +153,47 @@ public class RefundService {
             // 포인트 복구 / 취소 처리
             // ===================
 
+            // 환불 대상 사용자/주문 조회
             Long userId = dbPayment.getOrder().getUser().getId();
             Long orderId = dbPayment.getOrder().getId();
 
-            // 1. 사용 포인트 복구 (SPENT -> CANCEL)
+            User user = dbPayment.getOrder().getUser();
+            Order order = dbPayment.getOrder();
+
+            // 1) 사용 포인트 복구 : SPENT -> CANCEL(양수)
+            // SPENT 트랜잭션이 존재하면 동일 금액을 CANCEL(양수)로 생성하여 포인트 복구
             pointTransactionRepository
                     .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.SPENT)
                     .ifPresent(spentTx -> {
-
-                        BigDecimal restoreAmount = spentTx.getPoints().abs();
-                        PointTransaction cancelRestore =
-                                PointTransaction.cancel(
-                                        dbPayment.getOrder().getUser(),
-                                        dbPayment.getOrder(),
-                                        restoreAmount
-                                );
-                        pointTransactionRepository.save(cancelRestore);
+                        BigDecimal restore = spentTx.getPoints().abs(); // 복구할 포인트 (양수)
+                        pointTransactionRepository.save(
+                                PointTransaction.cancel(user, order, restore)
+                        );
                     });
 
-            // 2. 적립 포인트 취소 (EARN/HOLDING -> CANCEL)
-            List<PointTransaction> earnList =
+            // 2) 적립 포인트 회수
+            // 해당 주문으로 적립된 HOLDING/EARN 트랜잭션의 remainingPoints를 0으로 마감
+            // 동시에 회수된 총 포인트를 CANCEL 트랜잭션으로 기록
+            List<PointTransaction> earnLikeTxs =
                     pointTransactionRepository.findAllByUser_IdAndOrder_IdAndTypeIn(
-                            userId,
-                            orderId,
-                            List.of(PointType.EARN, PointType.HOLDING)
+                            userId, orderId, List.of(PointType.HOLDING, PointType.EARN)
                     );
 
-            for(PointTransaction earnTx : earnList) {
-                BigDecimal cancelAmount = earnTx.getPoints().abs().negate();
-                PointTransaction cancelEarn =
-                        PointTransaction.cancel(
-                                dbPayment.getOrder().getUser(),
-                                dbPayment.getOrder(),
-                                cancelAmount
-                        );
-                pointTransactionRepository.save(cancelEarn);
+            BigDecimal totalReclaimed = BigDecimal.ZERO;
+
+            for (PointTransaction tx : earnLikeTxs) {
+                BigDecimal rem = tx.getRemainingPoints();
+                if (rem != null && rem.compareTo(BigDecimal.ZERO) > 0) {
+                    totalReclaimed = totalReclaimed.add(rem);     // 회수 포인트 누적
+                    tx.updateRemainingPoints(BigDecimal.ZERO);    // 잔액 마감
+                }
+            }
+
+            // 회수된 포인트가 존재하면 CANCEL 트랜잭션 생성 (환불로 인한 적립 취소 기록)
+            if (totalReclaimed.compareTo(BigDecimal.ZERO) > 0) {
+                pointTransactionRepository.save(
+                        PointTransaction.cancel(user, order, totalReclaimed)
+                );
             }
 
             // ===================

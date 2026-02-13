@@ -52,6 +52,7 @@ public class PointTransaction extends BaseEntity {
         this.user = order.getUser();
         this.order = order;
 
+        // HOLDING이 아닌 트랜잭션의 remainingPoints 기본값을 0으로 초기화 (null 방지)
         this.remainingPoints = BigDecimal.ZERO;
 
         if(type == PointType.HOLDING){
@@ -83,12 +84,13 @@ public class PointTransaction extends BaseEntity {
         return tx;
     }
 
+    /** 포인트 사용 트랜잭션 생성 (SPENT) */
     public static PointTransaction spend(User user, Order order, BigDecimal amountToSpend) {
-        BigDecimal negative = amountToSpend.abs().negate();
-        return of(user, order, PointType.SPENT, negative, BigDecimal.ZERO, null);
+        return of(user, order, PointType.SPENT, amountToSpend.abs(), BigDecimal.ZERO, null);
     }
 
+    /** 포인트 취소 트랜잭션 생성 (CANCEL, 포인트 복구) */
     public static PointTransaction cancel(User user, Order order, BigDecimal deltaPoints) {
-        return of(user, order, PointType.CANCEL, deltaPoints, BigDecimal.ZERO, null);
+        return of(user, order, PointType.CANCEL, deltaPoints.abs(), BigDecimal.ZERO, null);
     }
 }

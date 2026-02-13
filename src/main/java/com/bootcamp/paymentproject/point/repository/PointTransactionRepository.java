@@ -36,10 +36,18 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     // Type 뒤에 'And'를 붙여서 두 필드를 확실히 구분해줘야 합니다.
     List<PointTransaction> findAllByTypeAndSwitchToTypeEarnAtBefore(PointType type, LocalDateTime dateTime);
 
+    /**
+     * 특정 사용자 + 특정 주문 + 특정 타입 포인트 1건 조회
+     * 주문 취소 시 사용된 포인트(SPENT) 조회
+     */
     Optional<PointTransaction> findFirstByUser_IdAndOrder_IdAndType(
             Long userId, Long orderId, PointType type
     );
 
+    /**
+     * 특정 사용자 + 특정 주문의 여러 타입 포인트 조회
+     * 주문 취소 시 SPENT, EARN, CANCEL 이력 조회
+     */
     List<PointTransaction> findAllByUser_IdAndOrder_IdAndTypeIn(
             Long userId, Long orderId, List<PointType> types
     );

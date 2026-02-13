@@ -82,25 +82,21 @@ public class Payment extends BaseEntity {
         }
     }
 
-    /** 결제 승인 시점에 환불가능일을 세팅 (2주) */
-    public void setRefundableUntil(LocalDateTime approvedAt, int days) {
-        this.refundableUntil = approvedAt.plusDays(days);
-    }
-
-    /** 현재 시각 기준 환불 가능 여부 */
+    /** 현재 시각 기준 환불 가능 여부 확인 */
     public boolean isRefundable(LocalDateTime now) {
         return refundableUntil != null && !now.isAfter(refundableUntil);
     }
 
-    /** 결제 승인 처리: APPROVED + paidAt + refundableUntil(2주) 세팅 */
+    /** 결제 승인 처리 (APPROVED, paidAt, refundableUntil 설정) */
     public void approve(LocalDateTime approvedAt) {
         paymentConfirmed();                 // status -> APPROVED
         this.paidAt = approvedAt;           // 승인 시각 기록
         this.refundableUntil = approvedAt.plusDays(14); // 환불 가능 마감(2주)
     }
 
+    /** 결제 환불 처리 (REFUNDED, refundedAt 설정) */
     public void refund(LocalDateTime refundedAt) {
-        paymentRefunded();          // status -> REFUNDED
-        this.refundedAt = refundedAt;
+        paymentRefunded();                 // status -> REFUNDED
+        this.refundedAt = refundedAt;      // 환불 시각 기록
     }
 }

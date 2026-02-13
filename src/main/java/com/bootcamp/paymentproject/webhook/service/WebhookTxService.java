@@ -2,11 +2,15 @@ package com.bootcamp.paymentproject.webhook.service;
 
 import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.common.exception.ServiceException;
+import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
 import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.order.entity.OrderProduct;
 import com.bootcamp.paymentproject.payment.entity.Payment;
 import com.bootcamp.paymentproject.payment.enums.PaymentStatus;
 import com.bootcamp.paymentproject.payment.repository.PaymentRepository;
+import com.bootcamp.paymentproject.point.entity.PointTransaction;
+import com.bootcamp.paymentproject.point.enums.PointType;
+import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
 import com.bootcamp.paymentproject.portone.PortOnePaymentResponse;
 import com.bootcamp.paymentproject.product.entity.Product;
 import com.bootcamp.paymentproject.product.repository.ProductRepository;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,15 +40,15 @@ public class WebhookTxService {
     private final PaymentRepository paymentRepository;
     private final ProductRepository productRepository;
 
+    private final PointTransactionRepository pointTransactionRepository;
+    private final UserMembershipRepository userMembershipRepository;
+
+
     /**
-     * PortOne webhook DB 반영 처리 (트랜잭션)
-     *
-     * 흐름:
-     * 1) webhook_event 저장 (멱등 처리)
-     * 2) Payment / Order 조회
-     * 3) 결제 상태 검증 및 상태 변경
-     * 4) 재고 차감 (결제 승인 시)
-     * 5) webhook_event 상태를 PROCESSED 또는 FAILED로 기록
+     * PortOne webhook 결과를 DB에 반영하는 트랜잭션 처리
+     * - 멱등 처리(중복 webhook 무시)
+     * - 결제 상태 반영 + 재고 차감 + 포인트 적립/정리
+     * - webhook_event 처리 결과(PROCESSED/FAILED) 기록
      */
     @Transactional
     public void handleAfterFetch(String webhookId,
@@ -51,13 +56,13 @@ public class WebhookTxService {
                                  PortoneWebhookPayload payload,
                                  PortOnePaymentResponse result) {
 
-        // 1. 중복 webhook 검사 (멱등 처리)
+        // 1) 멱등 처리: 같은 webhookId면 무시
         if (webhookEventRepository.findByWebhookId(webhookId).isPresent()) {
             log.info("[PORTONE_WEBHOOK] duplicate webhookId={}, ignore", webhookId);
             return;
         }
 
-        // webhook_event 저장 (RECEIVED 상태)
+        // 1-1) webhook_event 저장 (중복이면 예외로도 방어)
         WebhookEvent event;
         try {
             event = WebhookEvent.received(
@@ -73,7 +78,7 @@ public class WebhookTxService {
         }
 
         try {
-            // 2. Payment / Order 조회
+            // 2) Payment / Order 조회
             String paymentId = result.getPaymentId();
 
             Payment payment = paymentRepository.findByPaymentId(paymentId)
@@ -81,7 +86,7 @@ public class WebhookTxService {
 
             Order order = payment.getOrder();
 
-            // 3. 결제 금액 검증 (취소/환불은 제외)
+            // 3) 결제 금액 검증 (취소/환불은 제외)
             String rawStatus = result.getStatus();
             boolean isRefunded = "REFUNDED".equalsIgnoreCase(rawStatus);
             boolean isCanceledLike = rawStatus != null &&
@@ -89,7 +94,6 @@ public class WebhookTxService {
                             "CANCELLED".equalsIgnoreCase(rawStatus) ||
                             isRefunded);
 
-            // 취소/환불은 amount 검증 스킵
             if (!isCanceledLike) {
                 BigDecimal portoneAmount = result.amount() != null ? result.amount().total() : null;
                 BigDecimal orderAmount = order.getTotalPrice();
@@ -101,7 +105,7 @@ public class WebhookTxService {
                 }
             }
 
-            // 상태 변환
+            // 4) 상태 매핑 + 상태 전이 검증
             PaymentStatus targetStatus = maptoPaymentStatus(result.getStatus());
             PaymentStatus currentStatus = payment.getStatus();
 
@@ -119,29 +123,70 @@ public class WebhookTxService {
                 throw new ServiceException(ErrorCode.INVALID_PAYMENT_STATUS_TRANSITION);
             }
 
-            // 4. 결제 상태 변경
+            // 5) 상태별 처리
             switch (targetStatus) {
 
-                // 결제 승인 → 재고 차감, 주문 완료
+                // 결제 승인: 재고 차감 + 주문 완료 + paidAt/refundableUntil 세팅 + HOLDING 적립
                 case APPROVED -> {
                     decreaseStockForOrder(order);
-                    payment.paymentConfirmed();
+                    payment.approve(LocalDateTime.now());
                     order.orderCompleted();
+
+                    Long userId = order.getUser().getId();
+                    Long orderId = order.getId();
+
+                    // 중복 방지: 동일 주문에 HOLDING/EARN 있으면 생성 스킵
+                    boolean hasHolding = pointTransactionRepository
+                            .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.HOLDING)
+                            .isPresent();
+                    boolean hasEarn = pointTransactionRepository
+                            .findFirstByUser_IdAndOrder_IdAndType(userId, orderId, PointType.EARN)
+                            .isPresent();
+
+                    if (!hasHolding && !hasEarn) {
+                        BigDecimal earnRate = userMembershipRepository.findEarnRateByUserId(userId)
+                                .orElse(BigDecimal.ZERO);
+
+                        BigDecimal earnAmount = payment.getAmount().multiply(earnRate);
+
+                        pointTransactionRepository.save(new PointTransaction(earnAmount, PointType.HOLDING, order));
+                    } else {
+                        log.info("[POINT] skip holding creation. orderId={}, hasHolding={}, hasEarn={}",
+                                orderId, hasHolding, hasEarn);
+                    }
                 }
 
                 // 결제 실패
                 case FAILED -> payment.paymentFailed();
 
-                // 결제 취소
+                // 결제 취소 : 결제 취소 + 주문 환불 상태 반영
                 case CANCELED -> {
                     payment.paymentCanceled();
                     order.orderRefunded();
                 }
 
-                // 환불 완료
+                // 환불: 결제 환불 + 주문 환불 + 해당 주문 적립(HOLDING/EARN) 잔액 0 마감
                 case REFUNDED -> {
-                    payment.paymentRefunded();
+                    payment.refund(LocalDateTime.now());
                     order.orderRefunded();
+
+                    Long userId = order.getUser().getId();
+                    Long orderId = order.getId();
+
+                    List<PointTransaction> earnLikeTxs =
+                            pointTransactionRepository.findAllByUser_IdAndOrder_IdAndTypeIn(
+                                    userId,
+                                    orderId,
+                                    List.of(PointType.HOLDING, PointType.EARN)
+                            );
+
+                    for (PointTransaction tx : earnLikeTxs) {
+                        if (tx.getRemainingPoints() != null && tx.getRemainingPoints().compareTo(BigDecimal.ZERO) > 0) {
+                            tx.updateRemainingPoints(BigDecimal.ZERO);
+                        }
+                    }
+
+                    log.info("[POINT] refund zero-out earn-like txs. orderId={}, count={}", orderId, earnLikeTxs.size());
                 }
 
                 // 환불 실패
@@ -151,7 +196,7 @@ public class WebhookTxService {
                 case PENDING -> { }
             }
 
-            // 처리 완료 기록
+            // 6) webhook_event 처리 완료
             event.markProcessed();
 
         } catch (ServiceException ex) {
@@ -161,15 +206,12 @@ public class WebhookTxService {
             event.markFailed();
 
         } catch (Exception ex) {
-
             log.error("[PORTONE_WEBHOOK] unexpected error webhookId={}", webhookId, ex);
             event.markFailed();
         }
     }
 
-    /**
-     * PortOne 결제 상태(String)를 우리 시스템의 PaymentStatus(Enum)로 변환
-     */
+    /** PortOne status(String) -> PaymentStatus 변환 */
     private PaymentStatus maptoPaymentStatus(String status) {
 
         // status가 없는 경우 예외 처리
@@ -192,32 +234,20 @@ public class WebhookTxService {
         };
     }
 
-    /**
-     * 주문에 포함된 상품들의 재고를 차감
-     *
-     * 흐름:
-     * 1) 주문 상품 목록 조회
-     * 2) 상품 ID별로 차감할 수량 계산
-     * 3) 상품을 비관적 락으로 조회 (동시성 방어)
-     * 4) 각 상품의 재고 감소
-     */
+    /** 주문 상품 재고 차감(상품별 합산 후 비관적 락 조회로 동시성 방어) */
     private void decreaseStockForOrder(Order order) {
 
-        // 주문 상품 목록 조회
         List<OrderProduct> orderProducts = order.getOrderProducts();
-
         if (orderProducts == null || orderProducts.isEmpty()) return;
 
-        // 상품별 차감 수량 계산
+        // productId별 차감 수량 합산
         Map<Long, Long> qtyByProductId = new HashMap<>();
 
         for (OrderProduct op : orderProducts) {
-
             if (op.getProduct() == null || op.getProduct().getId() == null) continue;
 
             Long productId = op.getProduct().getId();
             Long qty = op.getStock();
-
             if (qty == null || qty <= 0) continue;
 
             qtyByProductId.merge(productId, qty, Long::sum);
@@ -230,25 +260,19 @@ public class WebhookTxService {
         // 상품을 비관적 락으로 조회(동시에 여러 결제가 재고를 수정하는 상황 방지)
         List<Product> products = productRepository.findAllByIdIn(productIds);
 
-        // 조회된 상품 수가 다르면 예외 처리
         if (products.size() != productIds.size()) {
             throw new ServiceException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        // 상품 ID → Product 매핑
         Map<Long, Product> productMap = products.stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
         // 재고 차감
         for (Map.Entry<Long, Long> e : qtyByProductId.entrySet()) {
-            Long productId = e.getKey();
-            Long qty = e.getValue();
-
-            Product product = productMap.get(productId);
+            Product product = productMap.get(e.getKey());
             if (product == null) throw new ServiceException(ErrorCode.PRODUCT_NOT_FOUND);
 
-            // 실제 재고 감소
-            product.decreaseStock(qty);
+            product.decreaseStock(e.getValue());
         }
     }
 }
