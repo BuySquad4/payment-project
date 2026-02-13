@@ -13,6 +13,6 @@ import java.util.Optional;
 public interface UserMembershipRepository extends JpaRepository<UserMembership, Long> {
     Optional<UserMembership> findByUser(User user);
 
-    @Query("SELECT m.earnRate FROM UserMembership um join um.membership m WHERE um.user.id = :userId")
+    @Query("SELECT COALESCE(m.earnRate, 0) FROM UserMembership um join um.membership m WHERE um.user.id = :userId")
     BigDecimal findEarnRateByUserId(@Param("userId") Long userId);
 }
