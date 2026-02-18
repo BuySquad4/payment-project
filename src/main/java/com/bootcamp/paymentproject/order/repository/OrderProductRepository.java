@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.order.Repository;
+package com.bootcamp.paymentproject.order.repository;
 
 import com.bootcamp.paymentproject.order.dto.OrderProductQuantityDto;
 import com.bootcamp.paymentproject.order.entity.OrderProduct;
