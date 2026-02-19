@@ -35,7 +35,10 @@ public enum ErrorCode {
     // User
     DUPLICATE_EMAIL("DUPLICATE_EMAIL", "중복된 이메일입니다", HttpStatus.CONFLICT),
     NOT_FOUND_USER("NOT_FOUND_USER", "존재하지 않는 유저입니다", HttpStatus.NOT_FOUND),
-    NOT_FOUND_GRADE("NOT_FOUND_GRADE", "존재하지 않는 등급입니다", HttpStatus.NOT_FOUND);
+    NOT_FOUND_GRADE("NOT_FOUND_GRADE", "존재하지 않는 등급입니다", HttpStatus.NOT_FOUND),
+
+    // POINT
+    INVALID_POINT_AMOUNT("INVALID_POINT_AMOUNT", "포인트 금액이 올바르지 않습니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;
