@@ -39,7 +39,7 @@ public class PointTransaction extends BaseEntity {
     private LocalDateTime switchToTypeEarnAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
