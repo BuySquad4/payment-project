@@ -436,14 +436,14 @@ await issuePortOneBillingKey({
 ### API 구현 체크리스트
 
 **필수 (기본 결제)**
-- [ ] `POST /api/auth/signup` — 회원가입
-- [ ] `POST /api/auth/login` — 로그인
-- [ ] `GET /api/auth/me` — 현재 사용자 (customerUid, email, name, phone, pointBalance)
-- [ ] `GET /api/products` — 상품 목록
-- [ ] `POST /api/orders` — 주문 생성
-- [ ] `POST /api/payments` — 결제 생성
-- [ ] `POST /api/payments/{paymentId}/confirm` — 결제 확정
-- [ ] `POST /api/payments/{paymentId}/refund` — 결제 취소
+- [x] `POST /api/auth/signup` — 회원가입
+- [x] `POST /api/auth/login` — 로그인
+- [x] `GET /api/auth/me` — 현재 사용자 (customerUid, email, name, phone, pointBalance)
+- [x] `GET /api/products` — 상품 목록
+- [x] `POST /api/orders` — 주문 생성
+- [x] `POST /api/payments` — 결제 생성
+- [x] `POST /api/payments/{paymentId}/confirm` — 결제 확정
+- [x] `POST /api/payments/{paymentId}/refund` — 결제 취소
 
 **선택 (포인트 결제)**
 - [ ] `GET /api/orders` — 주문 목록 (PENDING 상태 조회용)
