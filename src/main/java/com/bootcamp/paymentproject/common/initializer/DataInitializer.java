@@ -1,9 +1,9 @@
 package com.bootcamp.paymentproject.common.initializer;
 
+import com.bootcamp.paymentproject.common.exception.ErrorCode;
 import com.bootcamp.paymentproject.membership.entity.Membership;
 import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.membership.enums.MembershipGrade;
-import com.bootcamp.paymentproject.membership.exception.MembershipErrorCode;
 import com.bootcamp.paymentproject.membership.exception.MembershipException;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
@@ -127,7 +127,7 @@ public class DataInitializer implements CommandLineRunner {
             // 관리자 멤버십 정보 추가
             Membership membership = membershipRepository.findByGradeName(MembershipGrade.NORMAL)
                     .orElseThrow(
-                            () -> new MembershipException(MembershipErrorCode.NOT_FOUND_GRADE)
+                            () -> new MembershipException(ErrorCode.NOT_FOUND_GRADE)
                     );
 
             UserMembership userMembership = UserMembership.builder()
