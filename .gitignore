@@ -38,6 +38,7 @@ out/
 
 ### 숨김 파일 ###
 secret.yml
+**/src/test/resources/application-test.yml
 
 ### 팁 ###
 주의사항.txt

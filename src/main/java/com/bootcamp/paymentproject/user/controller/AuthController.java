@@ -1,18 +1,17 @@
 package com.bootcamp.paymentproject.user.controller;
 
-import com.bootcamp.paymentproject.common.security.CustomUserDetails;
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
+import com.bootcamp.paymentproject.common.security.CustomUserDetails;
+import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
 import com.bootcamp.paymentproject.user.dto.request.SignUpRequest;
 import com.bootcamp.paymentproject.user.dto.response.GetCurrentUserResponse;
 import com.bootcamp.paymentproject.user.dto.response.SignUpResponse;
-import com.bootcamp.paymentproject.common.security.JwtTokenProvider;
 import com.bootcamp.paymentproject.user.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
-
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
+    
     private final AuthService authService;
 
     @PostMapping("/signup")
