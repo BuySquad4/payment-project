@@ -7,7 +7,7 @@ import com.bootcamp.paymentproject.membership.exception.MembershipErrorCode;
 import com.bootcamp.paymentproject.membership.exception.MembershipException;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
-import com.bootcamp.paymentproject.order.Repository.OrderRepository;
+import com.bootcamp.paymentproject.order.repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
 import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.order.entity.OrderProduct;

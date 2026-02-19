@@ -1,7 +1,7 @@
 package com.bootcamp.paymentproject.order.service;
 
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
-import com.bootcamp.paymentproject.order.Repository.OrderRepository;
+import com.bootcamp.paymentproject.order.repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderCreateRequest;
 import com.bootcamp.paymentproject.order.dto.OrderCreateResponse;
 import com.bootcamp.paymentproject.order.dto.OrderGetResponse;

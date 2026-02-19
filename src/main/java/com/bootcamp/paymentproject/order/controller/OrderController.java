@@ -1,4 +1,4 @@
-package com.bootcamp.paymentproject.order.Controller;
+package com.bootcamp.paymentproject.order.controller;
 
 import com.bootcamp.paymentproject.common.dto.SuccessResponse;
 import com.bootcamp.paymentproject.common.security.CustomUserDetails;
