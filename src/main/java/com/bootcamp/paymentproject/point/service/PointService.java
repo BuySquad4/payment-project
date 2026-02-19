@@ -3,7 +3,6 @@ package com.bootcamp.paymentproject.point.service;
 import com.bootcamp.paymentproject.point.entity.PointTransaction;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import com.bootcamp.paymentproject.point.repository.PointTransactionRepository;
-import com.bootcamp.paymentproject.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

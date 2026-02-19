@@ -2,7 +2,6 @@ package com.bootcamp.paymentproject.portone;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 

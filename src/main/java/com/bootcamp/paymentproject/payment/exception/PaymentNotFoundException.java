@@ -1,7 +1,6 @@
 package com.bootcamp.paymentproject.payment.exception;
 
 import com.bootcamp.paymentproject.common.exception.ErrorCode;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 @Getter
