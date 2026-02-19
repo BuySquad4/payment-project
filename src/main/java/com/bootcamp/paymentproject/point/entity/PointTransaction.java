@@ -39,11 +39,11 @@ public class PointTransaction extends BaseEntity {
     private LocalDateTime switchToTypeEarnAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     public PointTransaction(BigDecimal points, PointType type, Order order) {

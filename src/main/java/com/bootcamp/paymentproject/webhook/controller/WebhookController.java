@@ -46,8 +46,13 @@ public class WebhookController {
                 new String(rawBody, StandardCharsets.UTF_8)
         );
 
-        // 3. 서명 검증 (현재 테스트용)
-        boolean verified = true;
+        // 3. 시그니처 검증
+        boolean verified = verifier.verify(
+                rawBody,
+                webhookId,
+                webhookTimestamp,
+                webhookSignature
+        );
 
         // 검증 실패 시 종료
         if (!verified) {

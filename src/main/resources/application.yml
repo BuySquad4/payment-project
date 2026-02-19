@@ -8,7 +8,7 @@ portone:
     secret: ${PORTONE_API_SECRET:}
   webhook:
     secret: demo-webhook-secret-key
-    secret-format: raw
+    secret-format: base64
 
 logging:
   level:
