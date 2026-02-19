@@ -46,16 +46,4 @@ public class GlobalExceptionHandler {
         ) ;
         return ResponseEntity.status(e.getHttpStatus()).body(errorResponse);
     }
-
-    @ExceptionHandler(UserException.class)
-    public ResponseEntity<?> handleUserException(UserException e, HttpServletRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                e.getErrorStatus().value(),
-                e.getErrorCode().getCode(),
-                e.getMessage(),
-                request.getRequestURI(),
-                LocalDateTime.now()
-        ) ;
-        return ResponseEntity.status(e.getErrorStatus()).body(errorResponse);
-    }
 }

@@ -6,14 +6,15 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public class UserException extends RuntimeException {
-    private final UserErrorCode errorCode;
-    private final HttpStatus errorStatus;
-    private final String errorMessage;
+public class UserException extends ServiceException {
 
-    public UserException(UserErrorCode errorCode) {
-        this.errorCode = errorCode;
-        this.errorStatus = errorCode.getStatus();
-        this.errorMessage = errorCode.getMessage();
+    public UserException(ErrorCode errorCode) {
+        super(
+            errorCode.getCode(),
+                errorCode.getMessage(),
+                errorCode.getHttpStatus(),
+                errorCode
+        );
+
     }
 }

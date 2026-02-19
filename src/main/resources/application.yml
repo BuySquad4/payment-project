@@ -9,3 +9,9 @@ portone:
   webhook:
     secret: demo-webhook-secret-key
     secret-format: raw
+
+logging:
+  level:
+    org.springframework.security: TRACE
+    org.springframework.security.web.FilterChainProxy: TRACE
+    org.springframework.web.filter: DEBUG

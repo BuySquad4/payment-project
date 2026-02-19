@@ -32,6 +32,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     @Override
+    protected boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
+        return request.getServletPath().equals("/api/auth/login")
+                && request.getMethod().equals("POST");
+    }
+
+    @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
