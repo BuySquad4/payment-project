@@ -1,7 +1,6 @@
 package com.bootcamp.paymentproject.common.exception;
 
 import com.bootcamp.paymentproject.portone.exception.PortOneApiException;
-import com.bootcamp.paymentproject.user.exception.UserException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

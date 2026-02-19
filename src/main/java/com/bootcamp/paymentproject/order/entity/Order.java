@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends BaseEntity {
@@ -22,18 +24,19 @@ public class Order extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_num")
+    @Column(name = "order_num", nullable = false)
     private String orderNumber;
-    @Column(name = "total_price")
+    @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
 
     @Column(name = "point_to_use")
     private BigDecimal pointToUse;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    @Column(name = "ordered_at")
+    @Column(name = "ordered_at", nullable = false)
     private LocalDateTime orderedAt;
 
     // 주문1 : 상품N, 주문이 주인, 주문 저장 시 상품 저장, 주문에서 제거 시 주문상품도 제거)
@@ -43,8 +46,6 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    public void setUser(User user) { this.user = user; }
 
     // 생성자 오류 해결
     public static Order create() {

@@ -15,9 +15,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
+
 
 import static org.springframework.boot.security.autoconfigure.web.servlet.PathRequest.toStaticResources;
 
@@ -35,23 +34,9 @@ import static org.springframework.boot.security.autoconfigure.web.servlet.PathRe
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-//    @Bean
-//    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-//        return config.getAuthenticationManager();
-//    }
-//
-//    @Bean
-//    public AuthenticationProvider authenticationProvider() {
-//        DaoAuthenticationProvider provider =
-//                new DaoAuthenticationProvider(customUserDetailsService);
-//        provider.setPasswordEncoder(passwordEncoder());
-//        return provider;
-//    }
 
     @Bean
     public AuthenticationManager authenticationManager() {
@@ -142,17 +127,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Admin 계정 (InMemory - 데모용)
-     */
-//    @Bean
-//    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-//        UserDetails admin = User.builder()
-//            .username("admin@test.com")
-//            .password(passwordEncoder.encode("admin"))
-//            .roles("USER", "ADMIN")
-//            .build();
-//
-//        return new InMemoryUserDetailsManager(admin);
-//    }
 }

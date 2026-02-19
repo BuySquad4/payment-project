@@ -17,6 +17,7 @@ import com.bootcamp.paymentproject.refund.exception.PaymentNotRefundableExceptio
 import com.bootcamp.paymentproject.refund.exception.RefundNotFoundException;
 import com.bootcamp.paymentproject.refund.repository.RefundRepository;
 import com.bootcamp.paymentproject.user.entity.User;
+import com.bootcamp.paymentproject.user.exception.UserNotFoundException;
 import com.bootcamp.paymentproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -125,7 +126,7 @@ public class RefundService {
 
         // 최신 User 엔티티로 영속성 보장(변경사항 저장 목적)
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("유저를 찾지 못했습니다. userId=" + userId));
+                .orElseThrow(UserNotFoundException::new);
 
         // 0) 멱등 처리: 이미 CANCEL 이력이 있으면 환불/복구 중복 실행 방지
         boolean alreadyCanceled = pointTransactionRepository

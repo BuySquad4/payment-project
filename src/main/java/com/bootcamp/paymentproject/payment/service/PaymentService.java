@@ -2,8 +2,10 @@ package com.bootcamp.paymentproject.payment.service;
 
 import com.bootcamp.paymentproject.membership.entity.Membership;
 import com.bootcamp.paymentproject.membership.entity.UserMembership;
+import com.bootcamp.paymentproject.membership.exception.UserMembershipNotFoundException;
 import com.bootcamp.paymentproject.membership.repository.MembershipRepository;
 import com.bootcamp.paymentproject.membership.repository.UserMembershipRepository;
+import com.bootcamp.paymentproject.order.exception.OrderNotFoundException;
 import com.bootcamp.paymentproject.order.repository.OrderProductRepository;
 import com.bootcamp.paymentproject.order.repository.OrderRepository;
 import com.bootcamp.paymentproject.order.dto.OrderProductQuantityDto;
@@ -57,7 +59,7 @@ public class PaymentService {
     @Transactional
     public CreatePaymentResponse createPayment(CreatePaymentRequest request) {
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(
-                () -> new IllegalStateException("해당 주문을 찾지 못했습니다.")
+                OrderNotFoundException::new
         );
 
         BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
@@ -177,7 +179,7 @@ public class PaymentService {
         //멤버십 등급 업데이트
         BigDecimal totalUserPayAmount = paymentRepository.getTotalAmountByUserId(order.getUser().getId(), PaymentStatus.APPROVED);
         UserMembership userMembership = userMembershipRepository.findByUser(order.getUser()).orElseThrow(
-                () -> new IllegalStateException("유저-멤버쉽 정보가 존재하지 않습니다.")
+                UserMembershipNotFoundException::new
         );
 
         Membership haveToChangeMembership = membershipRepository.findTopByMinTotalPaidAmountLessThanEqualOrderByMinTotalPaidAmountDesc(totalUserPayAmount).orElseThrow(

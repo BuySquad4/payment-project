@@ -37,12 +37,3 @@ public class ProductResponse {
                 .build();
     }
 }
-
-// @Build, from
-//    private Long id;
-//    private String name;
-//    private BigDecimal price;
-//    private Long stock;
-//    private String description;
-//    private ProductStatus status;
-//    private String category;

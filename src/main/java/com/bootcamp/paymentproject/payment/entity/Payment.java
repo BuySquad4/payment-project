@@ -21,11 +21,13 @@ public class Payment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String paymentId;
 
+    @Column(nullable = false)
     private BigDecimal amount;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 

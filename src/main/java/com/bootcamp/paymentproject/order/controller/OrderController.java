@@ -21,7 +21,6 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-    private final UserRepository userRepository;
 
 
     // 주문 생성
