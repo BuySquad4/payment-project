@@ -1,7 +1,6 @@
 package com.bootcamp.paymentproject.membership.entity;
 
 import com.bootcamp.paymentproject.common.entity.BaseEntity;
-import com.bootcamp.paymentproject.membership.enums.MembershipGrade;
 import com.bootcamp.paymentproject.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

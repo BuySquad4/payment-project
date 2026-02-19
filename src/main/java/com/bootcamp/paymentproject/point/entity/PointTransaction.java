@@ -43,7 +43,7 @@ public class PointTransaction extends BaseEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     public PointTransaction(BigDecimal points, PointType type, Order order) {

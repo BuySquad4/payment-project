@@ -1,6 +1,5 @@
 package com.bootcamp.paymentproject.membership.repository;
 
-import com.bootcamp.paymentproject.membership.entity.Membership;
 import com.bootcamp.paymentproject.membership.entity.UserMembership;
 import com.bootcamp.paymentproject.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
