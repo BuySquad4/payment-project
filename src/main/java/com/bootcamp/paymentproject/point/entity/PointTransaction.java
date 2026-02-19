@@ -1,6 +1,8 @@
 package com.bootcamp.paymentproject.point.entity;
 
 import com.bootcamp.paymentproject.common.entity.BaseEntity;
+import com.bootcamp.paymentproject.common.exception.ErrorCode;
+import com.bootcamp.paymentproject.common.exception.ServiceException;
 import com.bootcamp.paymentproject.order.entity.Order;
 import com.bootcamp.paymentproject.point.enums.PointType;
 import com.bootcamp.paymentproject.user.entity.User;
@@ -39,7 +41,7 @@ public class PointTransaction extends BaseEntity {
     private LocalDateTime switchToTypeEarnAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -90,7 +92,7 @@ public class PointTransaction extends BaseEntity {
     // 포인트 취소/상쇄 트랜잭션 생성 (CANCEL, 부호 그대로 사용)
     public static PointTransaction cancel(User user, Order order, BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
-            throw new IllegalArgumentException("cancel amount must be non-zero");
+            throw new ServiceException(ErrorCode.INVALID_POINT_AMOUNT);
         }
         return of(user, order, PointType.CANCEL, amount, BigDecimal.ZERO, null);
     }
@@ -98,7 +100,7 @@ public class PointTransaction extends BaseEntity {
     // 사용 포인트 복구 (+금액으로 CANCEL 생성)
     public static PointTransaction cancelSpendRestore(User user, Order order, BigDecimal restoreAmount) {
         if (restoreAmount == null || restoreAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("restoreAmount must be positive");
+            throw new ServiceException(ErrorCode.INVALID_POINT_AMOUNT);
         }
         return cancel(user, order, restoreAmount.abs());
     }
@@ -106,7 +108,7 @@ public class PointTransaction extends BaseEntity {
     // HOLDING 포인트 무효화 (-금액으로 CANCEL 생성)
     public static PointTransaction cancelHolding(User user, Order order, BigDecimal holdingAmount) {
         if (holdingAmount == null || holdingAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("holdingAmount must be positive");
+            throw new ServiceException(ErrorCode.INVALID_POINT_AMOUNT);
         }
         return cancel(user, order, holdingAmount.abs().negate());
     }
