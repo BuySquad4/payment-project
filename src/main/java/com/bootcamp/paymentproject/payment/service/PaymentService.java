@@ -49,11 +49,12 @@ public class PaymentService {
     private final OrderProductRepository orderProductRepository;
 
     private final ProductRepository productRepository;
-    private final UserMembershipRepository userMembershipRepository;
-    private final MembershipRepository membershipRepository;
-    private final UserRepository userRepository;
 
     private final PointTransactionRepository pointTransactionRepository;
+
+    private final UserRepository userRepository;
+    private final UserMembershipRepository userMembershipRepository;
+    private final MembershipRepository membershipRepository;
     private final PointSpendHistoryRepository pointSpendHistoryRepository;
 
     @Transactional
@@ -141,7 +142,14 @@ public class PaymentService {
         Order order = dbPayment.getOrder();
         order.orderCompleted();
 
+        processPostPaymentConfirmation(dbPayment, order);
 
+        // 변경된 사용자 포인트 잔액 DB 저장
+        return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
+    }
+
+    @Transactional
+    public void processPostPaymentConfirmation(Payment dbPayment, Order order) {
         // 포인트 미 사용시
         if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
 
@@ -199,8 +207,5 @@ public class PaymentService {
 
         // 계산된 최신 포인트 잔액을 사용자 엔티티에 반영
         userRepository.save(user);
-
-        // 변경된 사용자 포인트 잔액 DB 저장
-        return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
     }
 }
