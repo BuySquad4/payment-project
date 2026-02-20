@@ -182,30 +182,30 @@ public class PaymentService {
                     break;
                 }
             }
-
-            //멤버십 등급 업데이트
-            BigDecimal totalUserPayAmount = paymentRepository.getTotalAmountByUserId(order.getUser().getId(), PaymentStatus.APPROVED);
-            UserMembership userMembership = userMembershipRepository.findByUser(order.getUser()).orElseThrow(
-                    UserMembershipNotFoundException::new
-            );
-
-            Membership haveToChangeMembership = membershipRepository.findTopByMinTotalPaidAmountLessThanEqualOrderByMinTotalPaidAmountDesc(totalUserPayAmount).orElseThrow(
-                    () -> new IllegalStateException("일치하는 멤버쉽 정보가 존재하지 않습니다.")
-            );
-
-            userMembership.updateTotalAmount(totalUserPayAmount);
-            userMembership.updateMembership(haveToChangeMembership);
-
-            // 주문에 연결된 사용자 조회
-            User user = order.getUser();
-
-            // 현재 사용자의 총 적립 포인트 합계를 DB에서 다시 계산
-            // (포인트 사용, 취소 등으로 변동된 실제 잔액을 정확히 반영하기 위함)
-            BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
-            order.getUser().setPointBalance(remainingPoint);
-
-            // 계산된 최신 포인트 잔액을 사용자 엔티티에 반영
-            userRepository.save(user);
         }
+
+        //멤버십 등급 업데이트
+        BigDecimal totalUserPayAmount = paymentRepository.getTotalAmountByUserId(order.getUser().getId(), PaymentStatus.APPROVED);
+        UserMembership userMembership = userMembershipRepository.findByUser(order.getUser()).orElseThrow(
+                UserMembershipNotFoundException::new
+        );
+
+        Membership haveToChangeMembership = membershipRepository.findTopByMinTotalPaidAmountLessThanEqualOrderByMinTotalPaidAmountDesc(totalUserPayAmount).orElseThrow(
+                () -> new IllegalStateException("일치하는 멤버쉽 정보가 존재하지 않습니다.")
+        );
+
+        userMembership.updateTotalAmount(totalUserPayAmount);
+        userMembership.updateMembership(haveToChangeMembership);
+
+        // 주문에 연결된 사용자 조회
+        User user = order.getUser();
+
+        // 현재 사용자의 총 적립 포인트 합계를 DB에서 다시 계산
+        // (포인트 사용, 취소 등으로 변동된 실제 잔액을 정확히 반영하기 위함)
+        BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
+        order.getUser().setPointBalance(remainingPoint);
+
+        // 계산된 최신 포인트 잔액을 사용자 엔티티에 반영
+        userRepository.save(user);
     }
 }
