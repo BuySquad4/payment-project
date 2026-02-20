@@ -42,5 +42,10 @@
             this.pointBalance = this.pointBalance.add(amount);
         }
 
-
+        public User(String username, String password, String phone, String email) {
+            this.username = username;
+            this.password = password;
+            this.phone = phone;
+            this.email = email;
+        }
     }

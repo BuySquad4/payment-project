@@ -49,11 +49,12 @@ public class PaymentService {
     private final OrderProductRepository orderProductRepository;
 
     private final ProductRepository productRepository;
-    private final UserMembershipRepository userMembershipRepository;
-    private final MembershipRepository membershipRepository;
-    private final UserRepository userRepository;
 
     private final PointTransactionRepository pointTransactionRepository;
+
+    private final UserRepository userRepository;
+    private final UserMembershipRepository userMembershipRepository;
+    private final MembershipRepository membershipRepository;
     private final PointSpendHistoryRepository pointSpendHistoryRepository;
 
     @Transactional
@@ -141,7 +142,14 @@ public class PaymentService {
         Order order = dbPayment.getOrder();
         order.orderCompleted();
 
+        processPostPaymentConfirmation(dbPayment, order);
 
+        // 변경된 사용자 포인트 잔액 DB 저장
+        return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
+    }
+
+    @Transactional
+    public void processPostPaymentConfirmation(Payment dbPayment, Order order) {
         // 포인트 미 사용시
         if(order.getPointToUse().compareTo(BigDecimal.ZERO) == 0) {
 
@@ -174,33 +182,30 @@ public class PaymentService {
                     break;
                 }
             }
+
+            //멤버십 등급 업데이트
+            BigDecimal totalUserPayAmount = paymentRepository.getTotalAmountByUserId(order.getUser().getId(), PaymentStatus.APPROVED);
+            UserMembership userMembership = userMembershipRepository.findByUser(order.getUser()).orElseThrow(
+                    UserMembershipNotFoundException::new
+            );
+
+            Membership haveToChangeMembership = membershipRepository.findTopByMinTotalPaidAmountLessThanEqualOrderByMinTotalPaidAmountDesc(totalUserPayAmount).orElseThrow(
+                    () -> new IllegalStateException("일치하는 멤버쉽 정보가 존재하지 않습니다.")
+            );
+
+            userMembership.updateTotalAmount(totalUserPayAmount);
+            userMembership.updateMembership(haveToChangeMembership);
+
+            // 주문에 연결된 사용자 조회
+            User user = order.getUser();
+
+            // 현재 사용자의 총 적립 포인트 합계를 DB에서 다시 계산
+            // (포인트 사용, 취소 등으로 변동된 실제 잔액을 정확히 반영하기 위함)
+            BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
+            order.getUser().setPointBalance(remainingPoint);
+
+            // 계산된 최신 포인트 잔액을 사용자 엔티티에 반영
+            userRepository.save(user);
         }
-
-        //멤버십 등급 업데이트
-        BigDecimal totalUserPayAmount = paymentRepository.getTotalAmountByUserId(order.getUser().getId(), PaymentStatus.APPROVED);
-        UserMembership userMembership = userMembershipRepository.findByUser(order.getUser()).orElseThrow(
-                UserMembershipNotFoundException::new
-        );
-
-        Membership haveToChangeMembership = membershipRepository.findTopByMinTotalPaidAmountLessThanEqualOrderByMinTotalPaidAmountDesc(totalUserPayAmount).orElseThrow(
-                () -> new IllegalStateException("일치하는 멤버쉽 정보가 존재하지 않습니다.")
-        );
-
-        userMembership.updateTotalAmount(totalUserPayAmount);
-        userMembership.updateMembership(haveToChangeMembership);
-
-        // 주문에 연결된 사용자 조회
-        User user = order.getUser();
-
-        // 현재 사용자의 총 적립 포인트 합계를 DB에서 다시 계산
-        // (포인트 사용, 취소 등으로 변동된 실제 잔액을 정확히 반영하기 위함)
-        BigDecimal remainingPoint = pointTransactionRepository.getPointSumByUserId(order.getUser().getId(), PointType.EARN);
-        order.getUser().setPointBalance(remainingPoint);
-
-        // 계산된 최신 포인트 잔액을 사용자 엔티티에 반영
-        userRepository.save(user);
-
-        // 변경된 사용자 포인트 잔액 DB 저장
-        return ConfirmPaymentResponse.fromEntityWithMessage(dbPayment, false,"결제 확인이 성공적으로 완료되었습니다.");
     }
 }
